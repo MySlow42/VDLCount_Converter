@@ -11,20 +11,16 @@
 #│Initialisé le 28.03.2019           │
 #└───────────────────────────────────┘
 
-
 #┌───────────────────────────────────────────────────────────────────────
 #│ Tout les commentaires auront cette forme
 #└───────────────────────────────────────────────────────────────────────
 
-
 #┌───────────────────────────────────────────────────────────────────────
-#│ 
+#│
 #└───────────────────────────────────────────────────────────────────────
 
-
-
 #┌───────────────────────────────────────────────────────────────────────
-#│ Appel de $1 pour la variable positionel (choix du fichier a traiter 
+#│ Appel de $1 pour la variable positionel (choix du fichier a traiter
 #│ (donc sont chemin)
 #└───────────────────────────────────────────────────────────────────────
 
@@ -64,7 +60,7 @@ echo "$NumeroSite"
 #│ nombre de canaux
 #└───────────────────────────────────────────────────────────────────────
 
-IFS=', ' read -r -a SplitChannel <<< "$NombreChannel"
+IFS=', ' read -r -a SplitChannel <<<"$NombreChannel"
 ArraySize=${#SplitChannel[@]}
 
 echo "Nous avons $ArraySize canaux a traité"
@@ -75,50 +71,43 @@ echo "Nous avons $ArraySize canaux a traité"
 #│ numéro et au lieu de les supprimer je garde que eux (REGEX)
 #└───────────────────────────────────────────────────────────────────────
 
-
 data=$(grep -v "^[^0-9]" $Fichier_Traiter)
-while read line
- do
- i="-1"
-CountData="-1"
-let "LineNumber++"
- echo "LINE: '${line}'"
- IFS=', ' read -r -a SplitData <<< "$line"
-        for element in "${SplitData[@]}"
-        do
-	let "i++"
+while read line; do
+    i="-1"
+    CountData="-1"
+    let "LineNumber++"
+    echo "LINE: '${line}'"
+    IFS=', ' read -r -a SplitData <<<"$line"
+    for element in "${SplitData[@]}"; do
+        let "i++"
         echo "$i $element"
-	if [[ $i == "0" ]]
-	then
-		Date=$element
-	elif [[ $i == "2" ]]
-	then
-		Canal=$element
-	fi
-	if [[ $i -gt "2" ]]
-	then
-		let "CountData++"
-		declare Data$CountData="$element"
-	fi
-        done
+        if [[ $i == "0" ]]; then
+            Date=$element
+        elif [[ $i == "2" ]]; then
+            Canal=$element
+        fi
+        if [[ $i -gt "2" ]]; then
+            let "CountData++"
+            declare Data$CountData="$element"
+        fi
+    done
 
-echo "Date $Date"
-echo "Canal $Canal"
-echo "Data0 $Data0"
-echo "Data1 $Data1"
-echo "Data2 $Data2"
-echo "Data3 $Data3"
-echo "Data4 $Data4"
-echo "Data5 $Data5"
-echo "Data6 $Data6"
-echo "Data7 $Data7"
-echo "Data8 $Data8"
-echo "Data9 $Data9"
-echo "Data10 $Data10"
-echo "Data11 $Data11"
-declare -A array$LineNumber
-declare array$LineNumber[0]="$Date"
-declare array$LineNumber[1]="$Canal"
-declare array$LineNumber[2]="$Data0"
-done <<< "$data"
-
+    echo "Date $Date"
+    echo "Canal $Canal"
+    echo "Data0 $Data0"
+    echo "Data1 $Data1"
+    echo "Data2 $Data2"
+    echo "Data3 $Data3"
+    echo "Data4 $Data4"
+    echo "Data5 $Data5"
+    echo "Data6 $Data6"
+    echo "Data7 $Data7"
+    echo "Data8 $Data8"
+    echo "Data9 $Data9"
+    echo "Data10 $Data10"
+    echo "Data11 $Data11"
+    declare -A array$LineNumber
+    declare array$LineNumber[0]="$Date"
+    declare array$LineNumber[1]="$Canal"
+    declare array$LineNumber[2]="$Data0"
+done <<<"$data"
