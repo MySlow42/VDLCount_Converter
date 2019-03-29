@@ -43,6 +43,7 @@ class ReadM720:
             iteration = 0
             # pour chaque ligne(ici représentée par lines) dans le fichier
             for lines in file.readlines():
+
                 # si le premier mot de la ligne est un chiffre, alors split de la ligne en mots puis insertion de chaque mot dans le tab data
                 if lines[0].isdigit():
                     words = lines.split()
