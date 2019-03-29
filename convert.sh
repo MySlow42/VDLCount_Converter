@@ -1,75 +1,75 @@
 #!/bin/bash
-#┌───────────────────────────────────┐
-#│Crée par Poli                      │
-#├───────────────────────────────────┤
-#│Fork de MySlow42/VDLCount_Converter│
-#├───────────────────────────────────┤
-#│Ce script permet de convertir un   │
-#│tableau vertical en horizental     │
-#│(ou l'inverse je sais plus)        │
-#├───────────────────────────────────┤
-#│Initialisé le 28.03.2019           │
-#└───────────────────────────────────┘
+#╔═══════════════════════════════════╗
+#║Crée par Poli                      ║
+#╠═══════════════════════════════════╣
+#║Fork de MySlow42/VDLCount_Converter║
+#╠═══════════════════════════════════╣
+#║Ce script permet de convertir un   ║
+#║tableau vertical en horizental     ║
+#║(ou l'inverse je sais plus)        ║
+#╠═══════════════════════════════════╣
+#║Initialisé le 28.03.2019           ║
+#╚═══════════════════════════════════╝
 
-#┌───────────────────────────────────────────────────────────────────────
-#│ Tout les commentaires auront cette forme
-#└───────────────────────────────────────────────────────────────────────
+#╔═══════════════════════════════════════════════════════════════════════
+#║ Tout les commentaires auront cette forme
+#╚═══════════════════════════════════════════════════════════════════════
 
-#┌───────────────────────────────────────────────────────────────────────
-#│
-#└───────────────────────────────────────────────────────────────────────
+#╔═══════════════════════════════════════════════════════════════════════
+#║
+#╚═══════════════════════════════════════════════════════════════════════
 
-#┌───────────────────────────────────────────────────────────────────────
-#│ Appel de $1 pour la variable positionel (choix du fichier a traiter
-#│ (donc sont chemin)
-#└───────────────────────────────────────────────────────────────────────
+#╔═══════════════════════════════════════════════════════════════════════
+#║ Appel de $1 pour la variable positionel (choix du fichier a traiter
+#║ (donc sont chemin)
+#╚═══════════════════════════════════════════════════════════════════════
 
 Fichier_Traiter=$1
 
-#┌───────────────────────────────────────────────────────────────────────
-#│ Trouver la ligne * channel et garder le nombre de canal
-#│ (Petit regex sur le fichier pour récuperer la ligne CHANNELS)
-#│ egrep c'est un truc pour executer les regex sur un fichier par exemple
-#│ egrep c'est un grep -e (-e dis --extended-regexp) et donc tout du
-#│ regex comme ça tu peux l'utiliser aussi
-#│ $() permet d'executer la commande rien de bien spécial ^^
-#└───────────────────────────────────────────────────────────────────────
+#╔═══════════════════════════════════════════════════════════════════════
+#║ Trouver la ligne * channel et garder le nombre de canal
+#║ (Petit regex sur le fichier pour récuperer la ligne CHANNELS)
+#║ egrep c'est un truc pour executer les regex sur un fichier par exemple
+#║ egrep c'est un grep -e (-e dis --extended-regexp) et donc tout du
+#║ regex comme ça tu peux l'utiliser aussi
+#║ $() permet d'executer la commande rien de bien spécial ^^
+#╚═══════════════════════════════════════════════════════════════════════
 
 NombreChannel=$(egrep '^.*\CHANNELS\b.*$' $Fichier_Traiter)
 
-#┌───────────────────────────────────────────────────────────────────────
-#│ Enlever tout jusqu'a un espace après le égale
-#│ sed c'est comme re.sub() sous python
-#└───────────────────────────────────────────────────────────────────────
+#╔═══════════════════════════════════════════════════════════════════════
+#║ Enlever tout jusqu'a un espace après le égale
+#║ sed c'est comme re.sub() sous python
+#╚═══════════════════════════════════════════════════════════════════════
 
 NombreChannel=$(echo "$NombreChannel" | sed -e 's/.*=//')
 
-#┌───────────────────────────────────────────────────────────────────────
-#│ Maintenant nous allons récupré le site sed va enelver tout après le =
-#│ et la deuxième fois enleve les esapces
-#└───────────────────────────────────────────────────────────────────────
+#╔═══════════════════════════════════════════════════════════════════════
+#║ Maintenant nous allons récupré le site sed va enelver tout après le =
+#║ et la deuxième fois enleve les esapces
+#╚═══════════════════════════════════════════════════════════════════════
 
 NumeroSite=$(egrep '^.*\SITE\b.*$' $Fichier_Traiter)
 NumeroSite=$(echo "$NumeroSite" | sed -e 's/.*=//' | sed 's/ //g')
 echo "$NumeroSite"
 
-#┌───────────────────────────────────────────────────────────────────────
-#│ Ici ça sépare chaque numéro et le met dans un array
-#│ ça a l'air vraiment compliquer mais IFS c'est un str_split enfaite
-#│ et a la fin je récupere la taille de l'array permetant de savoir le
-#│ nombre de canaux
-#└───────────────────────────────────────────────────────────────────────
+#╔═══════════════════════════════════════════════════════════════════════
+#║ Ici ça sépare chaque numéro et le met dans un array
+#║ ça a l'air vraiment compliquer mais IFS c'est un str_split enfaite
+#║ et a la fin je récupere la taille de l'array permetant de savoir le
+#║ nombre de canaux
+#╚═══════════════════════════════════════════════════════════════════════
 
 IFS=', ' read -r -a SplitChannel <<<"$NombreChannel"
 ArraySize=${#SplitChannel[@]}
 
 echo "Nous avons $ArraySize canaux a traité"
 
-#┌───────────────────────────────────────────────────────────────────────
-#│ grep pour enlever toutes les lignes ne commancant pas par un numéro
-#│ grep -v inverse le sense de matching donc la je cherche tout les
-#│ numéro et au lieu de les supprimer je garde que eux (REGEX)
-#└───────────────────────────────────────────────────────────────────────
+#╔═══════════════════════════════════════════════════════════════════════
+#║ grep pour enlever toutes les lignes ne commancant pas par un numéro
+#║ grep -v inverse le sense de matching donc la je cherche tout les
+#║ numéro et au lieu de les supprimer je garde que eux (REGEX)
+#╚═══════════════════════════════════════════════════════════════════════
 
 data=$(grep -v "^[^0-9]" $Fichier_Traiter)
 while read line; do
