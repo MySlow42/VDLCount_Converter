@@ -121,6 +121,26 @@ class ReadM720:
     def CanRead(self, can_source):
         return setup.par['can'][can_source]
 
+    def nomFichierALire(self, nom_premier_fichier='lala12465.txr'):
+        liste_nom = []
+        lien = nom_premier_fichier.split('/')
+        nom_fichier = lien.split('_')[:-2]
+        ext_incr = nom_fichier.split('.')[:-1]
+        nb_fich = 0
+        i = 0
+        liste_nom = liste_nom + nom_premier_fichier
+        while nb_fich < 5:
+            ext_incr = np.base_repr(ext_incr, 10)
+            ext_incr += 1
+            ext_incr = np.base_repr(ext_incr, 36)
+            print(ext_incr)
+            nom_fichier
+
+
+
+
+
+
 
 if __name__ == '__main__':
     import sys
@@ -135,4 +155,5 @@ if __name__ == '__main__':
     # print(x.nbre_canal)
     # print(x.date_debut)
     # print(x.CanRead(2))
-    print(x.lecturePremierJour)
+    # print(x.lecturePremierJour)
+    print(x.nomFichierALire)
