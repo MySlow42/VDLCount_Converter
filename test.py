@@ -76,7 +76,7 @@ class test:
                 u += 1
 
                 print(u)
-                if u > 58:
+                if u > ord('9'): # retourne la valeur de 9 en ASCII
                     u = 'A'
                     print('passe par là bordel!!')
                 # chr(u)
