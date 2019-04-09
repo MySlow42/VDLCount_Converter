@@ -54,32 +54,37 @@ class test:
                     # while jour >= "01":
                     #  readFile()
 
-    def nomFichierALire(self, nom_premier_fichier=r'bka\bla\blo\Data\C105CHAB_I6y.txt'):
-        liste_nom = []
+    def nomFichierALire(self, nom_premier_fichier=r'bka\bla\blo\Data\C105CHAB_I67.txt'):
         nom_premier_fichier.replace('\\', '/')
+        liste_nom = []
         nom_fichier = nom_premier_fichier[:-6]
-        print(nom_fichier)
-        dizaine_ext_incr  = nom_premier_fichier[-6:-5]
+        dizaine_ext_incr = nom_premier_fichier[-6:-5]
         unit_ext_incr = nom_premier_fichier[-5:-4]
-        print(unit_ext_incr)
         liste_nom.append(nom_premier_fichier)
-        print(liste_nom)
         nb_fich = 0
-
+        array = ['1','2','3','4','5','6','7','8','9','0']
         d = dizaine_ext_incr 
 
         while nb_fich < 5:
-            if isinstance(unit_ext_incr, int):
-                #unit_ext_incr == int
-                print(str(unit_ext_incr) + 'unité')
-                u = ord(unit_ext_incr)  # retourne la valeur correspondante en ASCII
-                print(str(u)+'int d valeur en ASCII')
+            print(str(unit_ext_incr) + ' début')
+            #Dans le cas où l'unité est un entier
+            if str(unit_ext_incr) in array:
+                #isinstance(unit_ext_incr, int):
+                print(str(unit_ext_incr) + ' unité')
+                u = unit_ext_incr
+                u = ord(str(u))  # retourne la valeur correspondante en ASCII
                 u += 1
-                if u > 9:
+
+                print(u)
+                if u > 58:
                     u = 'A'
+                    print('passe par là bordel!!')
                 # chr(u)
-                print(str(u) + 'int u valeur en ASCII > A')
+                else:
+                    u = chr(u)
+                print('je suis passé par làààà')
             else:
+                # Dans le cas où l'unité est un string
                 unit_ext_incr = unit_ext_incr.upper()
                 u = chr(ord(unit_ext_incr) + 1)
                 if u > chr(ord('Z')):
