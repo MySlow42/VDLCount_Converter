@@ -9,7 +9,7 @@ recherche tous les fichiers à lire puis traîtement des fichiers
 import os, linecache
 import numpy as np
 import setup
-from datetime import datetime
+import logging
 
 
 class ReadM720:
@@ -49,7 +49,7 @@ class ReadM720:
         u = nom_premier_fichier[-5:-4]  # récupération du 1er caractère qui devra être incrémenter
         d = nom_premier_fichier[-6:-5]  # récupération du 2nd caractère qui devra être incrémenter
         extension = nom_premier_fichier[-4:]  # récupération de l'extension
-        self.liste_nom.append(nom_premier_fichier)  # insertion du 1er pathfile (donné par l'user)
+        self.liste_nom.append(nom_premier_fichier)  # insertion du 1er pathfile (donné par l'user)bals
         nb_fich = 0
 
         # tant que le nbre de fichier est en dessous de 5
@@ -86,7 +86,7 @@ class ReadM720:
         nb_fichiers_lus = 0
         nb_fichiers_recus = 0
         index_liste_nom = 0
-        iteration_data_ascii = 0
+        iteration_data_ascii: int = 0
         jour_1 = False
         print(self.liste_nom[index_liste_nom])
         for fName in self.liste_nom:
@@ -118,12 +118,12 @@ class ReadM720:
                                     self.nbre_canal = len(self.affect_canal)
                                     print('nbre de canaux ' + str(self.nbre_canal))
 
-                        # si le mot "STARTREC" se trouve dans une des lignes, alors split la phrase, prend le dernier mot du tableau words et remplace les "/" par rien puis affecte le mot à la var M720dateDebut
-                        if "STARTREC" in lines:
-                            words = lines.split()
-                            strDateDebut = words[-1].replace('/', '')
-                            self.date_debut = strDateDebut
-                            print('date de début ' + str(self.date_debut))
+                        # # si le mot "STARTREC" se trouve dans une des lignes, alors split la phrase, prend le dernier mot du tableau words et remplace les "/" par rien puis affecte le mot à la var M720dateDebut
+                        # if "STARTREC" in lines:
+                        #     words = lines.split()
+                        #     strDateDebut = words[-1].replace('/', '')
+                        #     self.date_debut = strDateDebut
+                        #     print('date de début ' + str(self.date_debut))
 
                     if nb_fichiers_lus >= 0:
                         if lines[0].isdigit():
@@ -137,6 +137,11 @@ class ReadM720:
 
                                 if self.jour == "01":
                                    jour_1 = True
+                                self.date_debut = date
+
+                            if self.jour == "01" and jour_1 and nb_fichiers_lus > 0:
+                                break
+
                             if jour_1:
                                 # print(jour)
                                 self.data_ascii.append(words)
@@ -151,13 +156,13 @@ class ReadM720:
                                 print(self.data_ascii[iteration_data_ascii][0])
                                 iteration_data_ascii += 1
 
-                    if self.jour == "01" and jour_1 and nb_fichiers_lus > 0:
-                        break
+
 
             # imprime les données avec la date dans le bon format dans le fichier de sortie test_in.txt
             self.PrintData(r'test_in.txt', self.data_ascii)
             # impressime fin du traitement + nom du fichier traiter
             print('Fin du traitement du fichier' + self.liste_nom[index_liste_nom])
+            # Incrémente les valeurs de 1
             index_liste_nom += 1
             nb_fichiers_recus += 1
             nb_fichiers_lus += 1
