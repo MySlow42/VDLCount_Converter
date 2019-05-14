@@ -6,16 +6,23 @@ Selon le point 7.2 du CDC
 recherche tous les fichiers à lire puis traîtement des fichiers
 """
 # Import des modules nécessaires
-import os, linecache
-import numpy as np
-import setup
 import logging
+
+import time
+
+import numpy as np
+
+import setup
 
 
 class ReadM720:
 
     liste_nom = []
     jour = ''
+    logging.basicConfig(filename='test_log.log', level=logging.DEBUG, format='%(asctime)s -- %(levelname)s -- %(message)s')
+    t0 = time.time()
+    logging.info('Démarrage de l application -- version 1')
+    Set.set
     # fait le lien avec les variables statiques et locales - constructeur
     def __init__(self, nocompt=0, nbrecan=0, affectcanal=0, ddebut=0, hdebut=0, dfin=0, hfin=0):
         self.compteur_nom = 'a'
@@ -43,6 +50,7 @@ class ReadM720:
     # fonction qui va lire le premier fichier inséré et déterminer les 4 autres fichiers à lire
     # le r avant le pathfile va empêcher le backslash d'être interprété comme caractère d'échappement en le doublant
     def nomFichierALire(self, nom_premier_fichier=r'.\Data\C105CHAB_I6s.txt'):
+        logging.info('Nom du fichier inséré: {0}'.format(nom_premier_fichier))
         nom_premier_fichier = nom_premier_fichier.replace('\\', '/')  # remplace les \\ en /
         nom_premier_fichier = nom_premier_fichier.upper()  # mise en maj de la chaîne
         path_nom_fichier = nom_premier_fichier[:-6]  # tronquage du pathfile pour obtenir que le nom du fichier
@@ -83,6 +91,7 @@ class ReadM720:
 
 
     def readFile(self):
+        logging.info('Fichiers à traiter: {0}'.format(self.liste_nom))
         nb_fichiers_lus = 0
         nb_fichiers_recus = 0
         index_liste_nom = 0
@@ -168,6 +177,8 @@ class ReadM720:
             nb_fichiers_lus += 1
         # Appel de la fonction suivante
         self.InitTableau()
+        t1 = time.time()
+        logging.info('Fin de l application en {0} secondes.'.format(t1-self.t0))
 
 
     # fonctione qui imprime les données d'un tableaux dans un fichier externe
@@ -215,8 +226,6 @@ class ReadM720:
 
 
 if __name__ == '__main__':
-    import sys
-
     x = ReadM720()
     x.nomFichierALire()
     x.readFile()
