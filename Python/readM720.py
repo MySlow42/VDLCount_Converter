@@ -16,13 +16,15 @@ import setup
 
 
 class ReadM720:
-
     liste_nom = []
     jour = ''
-    logging.basicConfig(filename='test_log.log', level=logging.DEBUG, format='%(asctime)s -- %(levelname)s -- %(message)s')
+
+    # logging.basicConfig(filename='test_log.log', level=logging.DEBUG,
+    #                     format='%(asctime)s -- %(levelname)s -- %(message)s')
+    # logging = logging.getLogger('spam')
     t0 = time.time()
-    logging.info('Démarrage de l application -- version 1')
-    Set.set
+    setup.MonLogging.logging.info('Démarrage de {0} -- version {1}'.format(setup.NAME, setup.VERSION))
+
     # fait le lien avec les variables statiques et locales - constructeur
     def __init__(self, nocompt=0, nbrecan=0, affectcanal=0, ddebut=0, hdebut=0, dfin=0, hfin=0):
         self.compteur_nom = 'a'
@@ -45,12 +47,10 @@ class ReadM720:
             self.date_fin,
             self.heure_fin)"""
 
-
-
     # fonction qui va lire le premier fichier inséré et déterminer les 4 autres fichiers à lire
     # le r avant le pathfile va empêcher le backslash d'être interprété comme caractère d'échappement en le doublant
     def nomFichierALire(self, nom_premier_fichier=r'.\Data\C105CHAB_I6s.txt'):
-        logging.info('Nom du fichier inséré: {0}'.format(nom_premier_fichier))
+        setup.MonLogging.logger.info('Nom du fichier inséré: {0}'.format(nom_premier_fichier))
         nom_premier_fichier = nom_premier_fichier.replace('\\', '/')  # remplace les \\ en /
         nom_premier_fichier = nom_premier_fichier.upper()  # mise en maj de la chaîne
         path_nom_fichier = nom_premier_fichier[:-6]  # tronquage du pathfile pour obtenir que le nom du fichier
@@ -63,7 +63,7 @@ class ReadM720:
         # tant que le nbre de fichier est en dessous de 5
         while nb_fich < 5:
             u = ReadM720.incr09az(self, u)  # appel de la fonction incr09az avec u en paramètre
-            if u == '0':  # si u est égal à 0
+            if u == '0':  # si u est egal à 0
                 d = ReadM720.incr09az(self, d)  # appel de la fonction incr09az avec d en paramètre
 
             nom = path_nom_fichier + str(d) + str(u) + extension  # contruction du nouveau nom de fichier avec extension
@@ -77,10 +77,11 @@ class ReadM720:
     # fonction qui prend en paramètre qui additione 1 à la variable préalablement convertie en ASCII
     def incr09az(self, charFile):
         if charFile.isdecimal():  # si le caractère est un décimal
-            if charFile == '9':  #s'il est égal à 9 retourner A
+            if charFile == '9':  # s'il est égal à 9 retourner A
                 return 'A'
             else:
-                return chr(ord(charFile) + 1)  # sinon convertir la valeur en Ascii l'additionner à 1 et la reconvertir en décimal
+                return chr(ord(
+                    charFile) + 1)  # sinon convertir la valeur en Ascii l'additionner à 1 et la reconvertir en décimal
         if charFile.isalpha():  # si la variable est une lettre
             if charFile == 'Z':  # si elle est égale à Z
                 return '0'  # retourne 0
@@ -88,7 +89,6 @@ class ReadM720:
                 return chr(ord(charFile) + 1)  # sinon retourne la valeur en Ascii +1
         print('Nom de fichier erroné: ' + self.liste_nom[0])  # sinon renvoyer une erreur à l'user
         exit(1)
-
 
     def readFile(self):
         logging.info('Fichiers à traiter: {0}'.format(self.liste_nom))
@@ -140,12 +140,11 @@ class ReadM720:
                             date = words[0]
                             self.jour = date[0:2]
 
-                            if jour_1 == False:
-                            # si le premier mot de la ligne est un chiffre, alors split de la ligne en mots puis insertion de chaque mot dans le tab data
-
+                            if jour_1 == False:  # premier jour du mois pas encore trouvé
+                                # si le premier mot de la ligne est un chiffre, alors split de la ligne en mots puis insertion de chaque mot dans le tab data
 
                                 if self.jour == "01":
-                                   jour_1 = True
+                                    jour_1 = True
                                 self.date_debut = date
 
                             if self.jour == "01" and jour_1 and nb_fichiers_lus > 0:
@@ -157,7 +156,8 @@ class ReadM720:
                                 # du moment que la var iteration_data_ascii est inférieure ou égale à la longeure du tab data alors prendre 1e mot de la ligne et l'injecter dans la var iterationDate
                                 iterationDate = self.data_ascii[iteration_data_ascii][0]
                                 # conversion de 2 carcatères (sélectionnés par des []) de la var string iterationDate en int puis multiplication de ceux-ci selon la position souhaitée pour obtenir le format de sortie désiré
-                                iterDateFormatSortie = (iterationDate[-2:]) + (iterationDate[-4:-2]) + (iterationDate[:2])
+                                iterDateFormatSortie = (iterationDate[-2:]) + (iterationDate[-4:-2]) + (
+                                iterationDate[:2])
                                 # print(self.data_ascii[iteration_data_ascii][0])
                                 # Insertion de la var iterDateFormatSortie dans la première position de chaque ligne du tab data
                                 self.data_ascii[iteration_data_ascii][0] = iterDateFormatSortie
@@ -165,21 +165,18 @@ class ReadM720:
                                 print(self.data_ascii[iteration_data_ascii][0])
                                 iteration_data_ascii += 1
 
-
-
             # imprime les données avec la date dans le bon format dans le fichier de sortie test_in.txt
             self.PrintData(r'test_in.txt', self.data_ascii)
             # impressime fin du traitement + nom du fichier traiter
             print('Fin du traitement du fichier' + self.liste_nom[index_liste_nom])
             # Incrémente les valeurs de 1
             index_liste_nom += 1
-            nb_fichiers_recus += 1
+            nb_fichiers_recus += 1  # mettre avant
             nb_fichiers_lus += 1
         # Appel de la fonction suivante
         self.InitTableau()
         t1 = time.time()
-        logging.info('Fin de l application en {0} secondes.'.format(t1-self.t0))
-
+        setup.MonLogging.logger.info('Fin de l application en {0} secondes.'.format(t1 - self.t0))
 
     # fonctione qui imprime les données d'un tableaux dans un fichier externe
     def PrintData(self, file, tableau_a_imprimer):
@@ -208,6 +205,7 @@ class ReadM720:
         return setup.par['can'][can_source]
 
         # instancie le tableau de sortie remplit initialement de 0 (int) puis remplis avec des valeurs par défaut pour 31j
+
     def InitTableau(self):
         jour_date = 1
         i = 0
@@ -226,6 +224,7 @@ class ReadM720:
 
 
 if __name__ == '__main__':
+
     x = ReadM720()
     x.nomFichierALire()
     x.readFile()
