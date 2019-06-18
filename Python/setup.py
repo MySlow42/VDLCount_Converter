@@ -7,13 +7,15 @@ setup
 """
 import sys
 
-import logging
+# import logging
 
-# import readM720
 
-class MonLogging:
-    # def __init__(self):
-    logging.basicConfig(level=logging.debug, format='%(levelname)-8s %(message)s', filename='test.log', filemode='w')
+
+# class MonLogging:
+#     def __init__(self):
+#         logger = logging.getLogger()
+#         logging.basicConfig(level=logging.debug, format='%(levelname)-8s %(message)s', filename='test.log', filemode='w')
+#         logging.info("fichier test.log créé dans setup")
 
 NAME = 'CountConverter.py'
 VERSION = '0.1'
@@ -22,7 +24,7 @@ ERR_INFILE = 2
 ERR_CONFIG = 3
 ERR_OUTFILE = 4
 ERR_FORMAT = 5
-# MonLogging.logger.info('test1')
+# MonLogging.logging.info('test1')
 
 par = {}
 par['infile'] = '.\Data\C105CHAB_I6E.txt'

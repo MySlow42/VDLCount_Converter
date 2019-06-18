@@ -19,11 +19,13 @@ class ReadM720:
     liste_nom = []
     jour = ''
 
-    # logging.basicConfig(filename='test_log.log', level=logging.DEBUG,
-    #                     format='%(asctime)s -- %(levelname)s -- %(message)s')
-    # logging = logging.getLogger('spam')
+    logging.basicConfig(filename='test_log.log', level=logging.DEBUG,
+                        format='%(asctime)s -- %(levelname)s -- %(message)s')
+    logging = logging.getLogger('spam')
     t0 = time.time()
-    setup.MonLogging.logging.info('Démarrage de {0} -- version {1}'.format(setup.NAME, setup.VERSION))
+    logging.info('Démarrage de {0} -- version {1}'.format(setup.NAME, setup.VERSION))
+
+
 
     # fait le lien avec les variables statiques et locales - constructeur
     def __init__(self, nocompt=0, nbrecan=0, affectcanal=0, ddebut=0, hdebut=0, dfin=0, hfin=0):
@@ -50,7 +52,7 @@ class ReadM720:
     # fonction qui va lire le premier fichier inséré et déterminer les 4 autres fichiers à lire
     # le r avant le pathfile va empêcher le backslash d'être interprété comme caractère d'échappement en le doublant
     def nomFichierALire(self, nom_premier_fichier=r'.\Data\C105CHAB_I6s.txt'):
-        setup.MonLogging.logger.info('Nom du fichier inséré: {0}'.format(nom_premier_fichier))
+        logging.info('Nom du fichier inséré: {0}'.format(nom_premier_fichier))
         nom_premier_fichier = nom_premier_fichier.replace('\\', '/')  # remplace les \\ en /
         nom_premier_fichier = nom_premier_fichier.upper()  # mise en maj de la chaîne
         path_nom_fichier = nom_premier_fichier[:-6]  # tronquage du pathfile pour obtenir que le nom du fichier
@@ -176,7 +178,7 @@ class ReadM720:
         # Appel de la fonction suivante
         self.InitTableau()
         t1 = time.time()
-        setup.MonLogging.logger.info('Fin de l application en {0} secondes.'.format(t1 - self.t0))
+        logging.info('Fin de l application en {0} secondes.'.format(t1 - self.t0))
 
     # fonctione qui imprime les données d'un tableaux dans un fichier externe
     def PrintData(self, file, tableau_a_imprimer):
@@ -222,19 +224,57 @@ class ReadM720:
         print(self.data_int)
         self.PrintData(r'test_out.txt', self.data_int)
 
+    def ConversionData(self):
+        jcan = 0
+        ligne = 0
+        print("I'm in")
+        for c in setup.par['can']:
+            date = self.data_ascii[ligne][0]
+            day = date[4:5]
+            day = "01"
+            print("par['can'] is " + str(c))
+            while day == self.data_int[ligne][1]: #& c == self.data_int[ligne][2]:
+                data = self.data_ascii[ligne]
+                print(data)
+                self.InsertDataAsciiToDataInt(ligne, data, day, c)
+                jcan += 1
+                if jcan == 2:
+                    logging.info("le jour " + day + " pour le canal no " + str(c) + "a été inséré dans le tableau de "
+                                                                                    "sortie")
+                else:
+                    logging.error("le jour " + day + " pour le canal no " + str(c) + "est manquant dans le tableau d' "
+                                                                                     "entrée")
+        ligne += 1
+
+    def InsertDataAsciiToDataInt(self, ligne, tableau, day, c):
+        index = 3
+        while index >= 3:
+            nbre = tableau[index]
+            i = 0
+            while day == self.data_int[i][1]:
+                col = int(c) + 3
+                self.data_int[i][col] = nbre
+                i += 1
+            i += 1
+
+
 
 if __name__ == '__main__':
 
     x = ReadM720()
     x.nomFichierALire()
     x.readFile()
+    x.ConversionData()
 
     print("---------------\n")
 
-    print(x.compteur_nom)
-    print(x.affect_canal)
-    print(x.nbre_canal)
-    print(x.date_debut)
-    print(x.CanRead(2))
-    print(x.lecturePremierJour)
-    print(x.nomFichierALire)
+    # print(x.compteur_nom)
+    # print(x.affect_canal)
+    # print(x.nbre_canal)
+    # print(x.date_debut)
+    # print(x.CanRead(2))
+    # print(x.lecturePremierJour)
+    # print(x.nomFichierALire)
+    print(x.data_ascii)
+    print(x.data_int)
+    print(x.ConversionData)

@@ -114,14 +114,22 @@ class test:
             nb_fich += 1
             print(liste_nom)
 
+
+    def Test(self):
+        test = [1, 2, 3, 4, 44, "ab", "cr"]
+        print(test)
+        data = test[1]
+        print(data)
+
 if __name__ == '__main__':
     import sys
 
     x = test()
     # x.readFile(r'.\Data\C105CHAB_I6E.txt')
     # x.readFile()
-    x.nomFichierALire()
+    # x.nomFichierALire()
     #x.stringConcatenation()
+    x.Test()
 
-    print(x.nomFichierALire)
+    # print(x.nomFichierALire)
     print('blabla')
