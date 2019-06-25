@@ -28,7 +28,7 @@ ERR_FORMAT = 5
 
 par = {}
 par['infile'] = '.\Data\C105CHAB_I6E.txt'
-par['can'] = [0, 1, 2, 3, 4, 5, 6]
+par['can'] = [1, 2, 3, 4, 0, 0]
 
 
 def count_help():
