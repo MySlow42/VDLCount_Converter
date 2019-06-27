@@ -7,7 +7,7 @@ Programme principal
 """
 import setup as Set
 import countObjects as Count
-import readM720 as M720
+import counterM720 as M720
 import sys, os, logging
 
 data = []
@@ -16,8 +16,7 @@ def main(argv):
     global data
     Set.setargs(argv)
     print('traiter: %s' % Set.par['infile'])
-    M720.ReadM720.readFile(Set.par['infile'])
-    M720.ReadM720.__repr__()
+
 
 
 
@@ -37,3 +36,7 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv)
+    x = M720.CounterM720()
+    x.nomFichierALire(Set.par['infile'])
+    x.readFile()
+    x.conversionData()

@@ -27,7 +27,7 @@ ERR_FORMAT = 5
 # MonLogging.logging.info('test1')
 
 par = {}
-par['infile'] = '.\Data\C105CHAB_I6E.txt'
+par['infile'] = '.\Data\C105CHAB_I6s.txt'
 par['can'] = [1, 2, 3, 4, 0, 0]
 
 
@@ -40,7 +40,7 @@ def count_help():
           'Type: 1-M720, 2-MetroCount, 3-EcoCounter, 4-Scala'.format(NAME))
 
 
-def set_config(fichier=r'.\Data\config.txt'):
+def set_config(fichier=r'.\Data\C105CHAB_I6s.txt'):
     with open(fichier, 'r') as file:
         for lignes in file.readlines():
             sp = lignes.split('#')[0]

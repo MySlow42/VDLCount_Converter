@@ -15,10 +15,12 @@ import numpy as np
 import setup
 
 
-class ReadM720:
+class CounterM720:
+#  variables globales
     liste_nom = []
     jour = ''
 
+#  paramètre pour le logger
     logging.basicConfig(filename='test_log.log', level=logging.DEBUG,
                         format='%(asctime)s -- %(levelname)s -- %(message)s')
     logging = logging.getLogger('spam')
@@ -40,8 +42,7 @@ class ReadM720:
         # self.initTableau()
 
     """def __repr__(self):
-        return 'no de Compteur {0: 6d}, Nbre de canaux = {1:6d}, affectation des canaux = {2:6d}, 
-        date de début = {3:6d}, heure de début = {4:4d}, date de fin = {5:6d}, heure de fin = {6:4d}'.format(
+        return 'no de Compteur {0: 6d}, Nbre de canaux = {1:6d}, affectation des canaux = {2:6d}, date de début = {3:6d}, heure de début = {4:4d}, date de fin = {5:6d}, heure de fin = {6:4d}'.format(
             self.compteur_nom,
             self.nbre_canal,
             self.affect_canal,
@@ -52,7 +53,7 @@ class ReadM720:
 
     # fonction qui va lire le premier fichier inséré et déterminer les 4 autres fichiers à lire
     # le r avant le pathfile va empêcher le backslash d'être interprété comme caractère d'échappement en le doublant
-    def nomFichierALire(self, nom_premier_fichier=r'.\Data\C105CHAB_I6s.txt'):
+    def nomFichierALire(self, nom_premier_fichier='.\Data\C105CHAB_I6s.txt'):
         logging.info('Nom du fichier inséré: {0}'.format(nom_premier_fichier))
         nom_premier_fichier = nom_premier_fichier.replace('\\', '/')  # remplace les \\ en /
         nom_premier_fichier = nom_premier_fichier.upper()  # mise en maj de la chaîne
@@ -60,14 +61,15 @@ class ReadM720:
         u = nom_premier_fichier[-5:-4]  # récupération du 1er caractère qui devra être incrémenter
         d = nom_premier_fichier[-6:-5]  # récupération du 2nd caractère qui devra être incrémenter
         extension = nom_premier_fichier[-4:]  # récupération de l'extension
-        self.liste_nom.append(nom_premier_fichier)  # insertion du 1er pathfile (donné par l'user)bals
+        print(self.liste_nom)
+        self.liste_nom.append(nom_premier_fichier)  # insertion du 1er pathfile (donné par l'user)
         nb_fich = 0
 
         # tant que le nbre de fichier est en dessous de 5
         while nb_fich < 5:
-            u = ReadM720.incr09az(self, u)  # appel de la fonction incr09az avec u en paramètre
+            u = CounterM720.incr09az(self, u)  # appel de la fonction incr09az avec u en paramètre
             if u == '0':  # si u est egal à 0
-                d = ReadM720.incr09az(self, d)  # appel de la fonction incr09az avec d en paramètre
+                d = CounterM720.incr09az(self, d)  # appel de la fonction incr09az avec d en paramètre
 
             nom = path_nom_fichier + str(d) + str(u) + extension  # contruction du nouveau nom de fichier avec extension
             print(d, u)
@@ -133,7 +135,7 @@ class ReadM720:
                                 if b.isdigit():
                                     self.affect_canal.append(int(b))
                                     self.nbre_canal = len(self.affect_canal)
-                                    print('nbre de canaux ' + str(self.nbre_canal))
+                            print('nbre de canaux ' + str(self.nbre_canal))
 
                         # # si le mot "STARTREC" se trouve dans une des lignes, alors split la phrase, prend le dernier
                         # mot du tableau words et remplace les "/" par rien puis affecte le mot à la var M720dateDebut
@@ -189,8 +191,7 @@ class ReadM720:
             nb_fichiers_lus += 1
         # Appel de la fonction suivante
         self.initTableau()
-        t1 = time.time()
-        logging.info('Fin de l application en {0} secondes.'.format(t1 - self.t0))
+
 
     # fonctione qui imprime les données d'un tableaux dans un fichier externe
     def printData(self, file, tableau_a_imprimer):
@@ -216,11 +217,11 @@ class ReadM720:
                         self.readFile()
 
     # lecture du placement des canaux par défaut de la class setup
-    def canRead(self, can_source):
-        return setup.par['can'][can_source]
+    # def canRead(self, can_source):
+    #     return setup.par['can'][can_source]
 
-        # instancie le tableau de sortie remplit initialement de 0 (int) puis remplis avec des valeurs par défaut
-        # pour 31j
+    # instancie le tableau de sortie remplit initialement de 0 (int) puis remplis avec des valeurs par défaut
+    # pour 31j
     def initTableau(self):
         jour_date = 1
         i = 0
@@ -237,7 +238,8 @@ class ReadM720:
         print(self.data_int)
         self.printData(r'test_out.txt', self.data_int)
 
-#  fonction qui va tester les valeurs can et nb_plage_horaire avant la conversion du tableau data_ascii à data_int
+#  fonction qui pour chaque canal var lire les lignes avec le canal correspondant, récupère le jour de la ligne traitée
+    #  et log les infos et erreurs
     def conversionData(self):
         #  variable qui va jusqu'à 2 - compte le nmbre de passage de la plage horaire (0100-1200 et 1300-2400)
         #  d'une date selon un canal
@@ -271,6 +273,8 @@ class ReadM720:
                 #     logging.error("le jour " + str(day) + " pour le canal no " + str(can) + " est manquant dans le "
                 #     " tableau d'entrée")
         self.printData(r'test_out.txt', self.data_int)
+        t1 = time.time()
+        logging.info('Fin de l application en {0} secondes.'.format(t1 - self.t0))
 
     #  fonction qui va convertir les données d'un tablea à un autre à l'aide de la fonction  conv_LineToCol
     def conv_LineToCol(self, data, can, day, nb_plage_horaire):
@@ -293,7 +297,7 @@ class ReadM720:
 
 if __name__ == '__main__':
 
-    x = ReadM720()
+    x = CounterM720()
     x.nomFichierALire()
     x.readFile()
     x.conversionData()
@@ -308,4 +312,4 @@ if __name__ == '__main__':
     # print(x.lecturePremierJour)
     # print(x.nomFichierALire)
     # print(x.data_ascii)
-    print(x.data_int)
+    # print(x.data_int)

@@ -68,11 +68,11 @@ class Compteur:
 
 """class compteur_1_mois:
     #compteur1mois = cpt.Compteur.valeurs()
-    M720data =rdM720.ReadM720.readFile('Z:\Python\PY_Code\C036TUN_I6X.txt')
-    print(rdM720.ReadM720.M720affectCanal)
+    M720data =rdM720.CounterM720.readFile('Z:\Python\PY_Code\C036TUN_I6X.txt')
+    print(rdM720.CounterM720.M720affectCanal)
     #une ligne représente 12h
-    nbreLigne1Jour = rdM720.ReadM720.M720affectCanal * 2 #pour 24h
-    noCompteur = rdM720.ReadM720.M720Compteur"""
+    nbreLigne1Jour = rdM720.CounterM720.M720affectCanal * 2 #pour 24h
+    noCompteur = rdM720.CounterM720.M720Compteur"""
 
 
 if __name__ == '__main__':
