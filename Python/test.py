@@ -115,11 +115,13 @@ class test:
             print(liste_nom)
 
 
-    def Test(self):
-        test = [1, 2, 3, 4, 44, "ab", "cr"]
-        print(test)
-        data = test[1]
-        print(data)
+    def Test(self, compteur = '105'):
+        fichier = r'.\Data\config.txt'
+        print("le no du compteur est: " + compteur)
+        with open(fichier, 'r') as file:
+            for lignes in file.readlines():
+                if compteur in lignes:
+                    print(lignes)
 
 if __name__ == '__main__':
     import sys

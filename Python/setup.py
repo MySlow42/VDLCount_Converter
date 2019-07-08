@@ -28,7 +28,7 @@ ERR_FORMAT = 5
 
 par = {}
 par['infile'] = '.\Data\C105CHAB_I6s.txt'
-par['can'] = [1, 2, 3, 4, 0, 0]
+par['par défaut'] = [1, 2, 3, 0, 0, 0]
 
 
 def count_help():
@@ -40,13 +40,24 @@ def count_help():
           'Type: 1-M720, 2-MetroCount, 3-EcoCounter, 4-Scala'.format(NAME))
 
 
-def set_config(fichier=r'.\Data\C105CHAB_I6s.txt'):
+def set_config():
+    fichier = r'.\Data\config.txt'
+    # print("le no du compteur est: " + compteur)
     with open(fichier, 'r') as file:
         for lignes in file.readlines():
             sp = lignes.split('#')[0]
+            sp = sp.replace('\n', '')
             sp = sp.split('=')
             if len(sp) == 2:
-                par[sp[0].strip()] = file.close()
+                sp[1] = sp[1].split(',')
+                c = 0
+                for no in sp[1]:
+                    sp[1][c] = int(sp[1][c])
+                    c += 1
+                par[sp[0]] = sp[1]
+                print(sp[0])
+    for i in par.get('135'):
+        print(i)
 
 
 def setargs(argv):
@@ -64,4 +75,5 @@ def setargs(argv):
 if __name__ == '__main__':
     print('Nom: {0}\nVersion: {1}'.format(NAME, VERSION))
     setargs(sys.argv)
+    set_config()
     print(par)

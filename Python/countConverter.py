@@ -22,20 +22,9 @@ def main(argv):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     main(sys.argv)
+    Set.set_config()
     x = M720.CounterM720()
     x.nomFichierALire(Set.par['infile'])
     x.readFile()

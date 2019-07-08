@@ -16,22 +16,22 @@ import setup
 
 
 class CounterM720:
-#  variables globales
+    #  variables globales
     liste_nom = []
     jour = ''
 
-#  paramètre pour le logger
+    #  paramètre pour le logger
     logging.basicConfig(filename='test_log.log', level=logging.DEBUG,
                         format='%(asctime)s -- %(levelname)s -- %(message)s')
     logging = logging.getLogger('spam')
     t0 = time.time()
     logging.info('Démarrage de {0} -- version {1}'.format(setup.NAME, setup.VERSION))
 
+    """ constructeur qui fait le lien avec les variables statiques et locales
+     Prend en paramètre les variables utiles à la classe"""
 
-
-    # fait le lien avec les variables statiques et locales - constructeur
     def __init__(self, nocompt=0, nbrecan=0, affectcanal=0, ddebut=0, hdebut=0, dfin=0, hfin=0):
-        self.compteur_nom = 'a'
+        self.compteur_num = 'a'
         self.nbre_canal = nbrecan
         self.affect_canal = []
         self.date_debut = ddebut
@@ -43,7 +43,7 @@ class CounterM720:
 
     """def __repr__(self):
         return 'no de Compteur {0: 6d}, Nbre de canaux = {1:6d}, affectation des canaux = {2:6d}, date de début = {3:6d}, heure de début = {4:4d}, date de fin = {5:6d}, heure de fin = {6:4d}'.format(
-            self.compteur_nom,
+            self.compteur_num,
             self.nbre_canal,
             self.affect_canal,
             self.date_debut,
@@ -51,7 +51,7 @@ class CounterM720:
             self.date_fin,
             self.heure_fin)"""
 
-    # fonction qui va lire le premier fichier inséré et déterminer les 4 autres fichiers à lire
+    # fonction qui va lire le fichier,contenant le 1er jour, inséré par l'user et déterminer les 4 autres fichiers à lire
     # le r avant le pathfile va empêcher le backslash d'être interprété comme caractère d'échappement en le doublant
     def nomFichierALire(self, nom_premier_fichier='.\Data\C105CHAB_I6s.txt'):
         logging.info('Nom du fichier inséré: {0}'.format(nom_premier_fichier))
@@ -122,9 +122,9 @@ class CounterM720:
                             # est affecté à la variable M720Compteur
                             for b in words:
                                 if b.isdigit():
-                                    # self.compteur_nom.__add__(b)
-                                    self.compteur_nom = b
-                                    print('nom compteur ' + str(self.compteur_nom))
+                                    # self.compteur_num.__add__(b)
+                                    self.compteur_num = b
+                                    print('nom compteur ' + str(self.compteur_num))
 
                         # si le mot "CHANNELS" se trouve dans une des lignes, alors split la phrase
                         if "CHANNELS" in lines:
@@ -145,7 +145,10 @@ class CounterM720:
                         #     self.date_debut = strDateDebut
                         #     print('date de début ' + str(self.date_debut))
 
+                        # si le nbre de fichiers lus est suppérieur ou égal à 0
                     if nb_fichiers_lus >= 0:
+                        # si le premier élément dans le tableau est un chiffre alors récupération des 2 derniers
+                        # chiffres et les attribuer à la variable jour
                         if lines[0].isdigit():
                             words = lines.split()
                             date = words[0]
@@ -166,13 +169,13 @@ class CounterM720:
                                 # print(jour)
                                 self.data_ascii.append(words)
                                 # du moment que la var iteration_data_ascii est inférieure ou égale à la longeure du tab
-                                #data alors prendre 1e mot de la ligne et l'injecter dans la var iterationDate
+                                # data alors prendre 1e mot de la ligne et l'injecter dans la var iterationDate
                                 iterationDate = self.data_ascii[iteration_data_ascii][0]
                                 # conversion de 2 carcatères (sélectionnés par des []) de la var string iterationDate
                                 # en int puis multiplication de ceux-ci selon la position souhaitée pour obtenir le
                                 # format de sortie désiré
                                 iterDateFormatSortie = (iterationDate[-2:]) + (iterationDate[-4:-2]) + (
-                                iterationDate[:2])
+                                    iterationDate[:2])
                                 # print(self.data_ascii[iteration_data_ascii][0])
                                 # Insertion de la var iterDateFormatSortie dans la première position de chaque ligne du
                                 # tab data
@@ -191,7 +194,6 @@ class CounterM720:
             nb_fichiers_lus += 1
         # Appel de la fonction suivante
         self.initTableau()
-
 
     # fonctione qui imprime les données d'un tableaux dans un fichier externe
     def printData(self, file, tableau_a_imprimer):
@@ -238,19 +240,21 @@ class CounterM720:
         print(self.data_int)
         self.printData(r'test_out.txt', self.data_int)
 
-#  fonction qui pour chaque canal var lire les lignes avec le canal correspondant, récupère le jour de la ligne traitée
+    #  fonction qui pour chaque canal var lire les lignes avec le canal correspondant, récupère le jour de la ligne traitée
     #  et log les infos et erreurs
     def conversionData(self):
         #  variable qui va jusqu'à 2 - compte le nmbre de passage de la plage horaire (0100-1200 et 1300-2400)
         #  d'une date selon un canal
         nb_plage_horaire = 0
-        #  pour chaque cannaux dans la variable par['can'] dans setup
-        for can in setup.par['can']:
-            print("par['can'] is " + str(can))
+
+        can = setup.par.get(str(self.compteur_num))
+        print(can)
+        for n in can:
+            print('----------- ------------- ----------------' + str(n) + '------------ ------------ ----------- -----')
             #  pour chaque lignes dans le tableau data_ascii
             for ligne in self.data_ascii:
                 #  si le n° de canal de par['can'] correspond au n° de canal du tableau data_ascii
-                if int(ligne[2]) == can:
+                if int(ligne[2]) == n:
                     #  récupérer la ligne pointée dans data_ascii et l'attribuer dans la variable data
                     data = ligne
                     print(data)
@@ -259,25 +263,26 @@ class CounterM720:
                     day = int(date[4:6])
                     print(day)
                     #  appel de la fonction avec paramètres
-                    self.conv_LineToCol(data, can, day, nb_plage_horaire)
+                    self.conv_LineToCol(data, n, day, nb_plage_horaire)
                     #  incrémentation de la variable
                     nb_plage_horaire += 1
                     #  si la variable nb_plage_horaire est égal à 2, on log et on remet la variable nb_plage_horaire à 0
                     if nb_plage_horaire == 2:
-                        logging.info("le jour " + str(day) + " pour le canal no " + str(can) + " a été inséré dans le "
-                                                                                               "tableau de sortie")
+                        logging.info(
+                            "le jour " + str(day) + " pour le canal no " + str(n) + " a été inséré dans le "
+                                                                                      "tableau de sortie")
                         nb_plage_horaire = 0
 
                 else:
                     print("erreur")
-                #     logging.error("le jour " + str(day) + " pour le canal no " + str(can) + " est manquant dans le "
+                #     logging.error("le jour " + str(day) + " pour le canal no " + str(compteur) + " est manquant dans le "
                 #     " tableau d'entrée")
         self.printData(r'test_out.txt', self.data_int)
         t1 = time.time()
         logging.info('Fin de l application en {0} secondes.'.format(t1 - self.t0))
 
     #  fonction qui va convertir les données d'un tablea à un autre à l'aide de la fonction  conv_LineToCol
-    def conv_LineToCol(self, data, can, day, nb_plage_horaire):
+    def conv_LineToCol(self, data, compteur, day, nb_plage_horaire):
         #  instanciation de la variable index à 3 - car c'est à partir de la 4è position que sont les données à traiter
         index = 3
         #  tant que index est inférieur à la longueur du tableau data
@@ -285,18 +290,14 @@ class CounterM720:
             #  attribution de la valeur pointée dans data à la variable nbre
             nbre = int(data[index])
 
-            heure = (index-3)+12*(nb_plage_horaire)
-            self.data_int[(day-1)*24+heure][2+can] = nbre
+            heure = (index - 3) + 12 * (nb_plage_horaire)
+            self.data_int[(day - 1) * 24 + heure][2 + compteur] = nbre
             print(nbre)
             print(index)
             index += 1
 
 
-
-
-
 if __name__ == '__main__':
-
     x = CounterM720()
     x.nomFichierALire()
     x.readFile()
@@ -304,7 +305,7 @@ if __name__ == '__main__':
 
     print("---------------\n")
 
-    # print(x.compteur_nom)
+    # print(x.compteur_num)
     # print(x.affect_canal)
     # print(x.nbre_canal)
     # print(x.date_debut)
