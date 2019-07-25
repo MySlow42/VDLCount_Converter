@@ -1,4 +1,4 @@
-ï»¿# configuration des cannaux selon le format: NNN=1,2,3,4,5,6 oÃ¹ NNN est le numÃ©ro du compteur
+# configuration des cannaux selon le format: NNN=1,2,3,4,5,6 où NNN est le numéro du compteur
 
 036=1,2,3,0,0,0
 135=0,2,3,0,0,0

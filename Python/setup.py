@@ -5,17 +5,17 @@ Traitement et conversions des fichiers des compteurs Golden River et MetroCount 
 Selon le point 7.2 du CDC
 setup
 """
-import sys
+import sys, os
+import logging
 
 # import logging
 
 
 
-# class MonLogging:
-#     def __init__(self):
-#         logger = logging.getLogger()
-#         logging.basicConfig(level=logging.debug, format='%(levelname)-8s %(message)s', filename='test.log', filemode='w')
-#         logging.info("fichier test.log créé dans setup")
+#  paramètre pour le logger
+logging.basicConfig(filename='test_log.log', level=logging.DEBUG,
+                    format='%(asctime)s -- %(levelname)s -- %(message)s')
+logging = logging.getLogger('spam')
 
 NAME = 'CountConverter.py'
 VERSION = '0.1'
@@ -24,7 +24,7 @@ ERR_INFILE = 2
 ERR_CONFIG = 3
 ERR_OUTFILE = 4
 ERR_FORMAT = 5
-# MonLogging.logging.info('test1')
+logging.info('Démarrage de {0} -- version {1}'.format(NAME, VERSION))
 
 par = {}
 par['infile'] = '.\Data\C105CHAB_I6s.txt'
@@ -43,21 +43,42 @@ def count_help():
 def set_config():
     fichier = r'.\Data\config.txt'
     # print("le no du compteur est: " + compteur)
-    with open(fichier, 'r') as file:
-        for lignes in file.readlines():
-            sp = lignes.split('#')[0]
-            sp = sp.replace('\n', '')
-            sp = sp.split('=')
-            if len(sp) == 2:
-                sp[1] = sp[1].split(',')
-                c = 0
-                for no in sp[1]:
-                    sp[1][c] = int(sp[1][c])
-                    c += 1
-                par[sp[0]] = sp[1]
-                print(sp[0])
-    for i in par.get('135'):
-        print(i)
+    try:
+        with open(fichier, 'r') as file:
+            pass
+    except IOError:
+        print("Erreur! Le fichier {0} n' pas pu être ouvert. Fin du programme. Veuillez contrôler que le"
+                      " fichier existe sous ce nom.".format(fichier))
+        logging.error("Erreur! Le fichier {0} n'a pas pu être ouvert. Fin du programme. Veuillez contrôler que le"
+                      " fichier existe sous ce nom.".format(fichier))
+        sys.exit()
+    else: #faire avec un raise
+        if os.path.getsize(fichier) == 0:
+            print("Erreur! Le fichier {0} est vide. Fin du programme. Veuillez contrôler que le"
+                          " fichier.".format(fichier))
+            logging.error("Erreur! Le fichier {0} est vide. Fin du programme. Veuillez contrôler que le"
+                          " fichier.".format(fichier))
+            sys.exit()
+        else:
+            with open(fichier, 'r') as file:
+                for lignes in file.readlines():
+                    sp = lignes.split('#')[0]
+                    sp = sp.replace('\n', '')
+                    sp = sp.split('=')
+                    if len(sp) == 2:
+                        sp[1] = sp[1].split(',')
+                        c = 0
+                        for no in sp[1]:
+                            sp[1][c] = int(sp[1][c])
+                            c += 1
+                        par[sp[0]] = sp[1]
+
+            # for valeurs in par.values():
+            #     for valeur in valeurs:
+            #         print(valeur)
+
+            print('nbre de 0 dans le dictionnaire par: ' + str(sum(value == 0 for value in par.values())))
+            # print('le fichier est grand comme: ' + str(os.path.getsize(fichier)))
 
 
 def setargs(argv):

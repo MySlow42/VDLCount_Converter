@@ -8,7 +8,7 @@ recherche tous les fichiers à lire puis traîtement des fichiers
 # Import des modules nécessaires
 import logging
 
-import time
+import time, sys
 
 import numpy as np
 
@@ -25,13 +25,12 @@ class CounterM720:
                         format='%(asctime)s -- %(levelname)s -- %(message)s')
     logging = logging.getLogger('spam')
     t0 = time.time()
-    logging.info('Démarrage de {0} -- version {1}'.format(setup.NAME, setup.VERSION))
 
     """ constructeur qui fait le lien avec les variables statiques et locales
      Prend en paramètre les variables utiles à la classe"""
 
     def __init__(self, nocompt=0, nbrecan=0, affectcanal=0, ddebut=0, hdebut=0, dfin=0, hfin=0):
-        self.compteur_num = 'a'
+        self.compteur_num = ''
         self.nbre_canal = nbrecan
         self.affect_canal = []
         self.date_debut = ddebut
@@ -66,7 +65,7 @@ class CounterM720:
         nb_fich = 0
 
         # tant que le nbre de fichier est en dessous de 5
-        while nb_fich < 5:
+        while nb_fich < 4:
             u = CounterM720.incr09az(self, u)  # appel de la fonction incr09az avec u en paramètre
             if u == '0':  # si u est egal à 0
                 d = CounterM720.incr09az(self, d)  # appel de la fonction incr09az avec d en paramètre
@@ -109,80 +108,99 @@ class CounterM720:
             fName = fName.replace('\\', '/')
             # ouverture du fichier en lecture, instanciation de la variable "iteration_data_ascii" qui nous servira
             # d'index
-            with open(fName, 'r') as file:
+            try:
+                with open(fName, 'r') as file:
+                    pass
 
-                # pour chaque ligne(ici représentée par lines) dans le fichier
-                for lines in file.readlines():
+            except FileNotFoundError:
+                if nb_fichiers_lus == 0:
+                    print("Erreur! Le 1er fichier ({0}) n' pas pu être ouvert. Fin du programme. Veuillez contrôler "
+                          " que le fichier existe sous ce nom.".format(fName))
+                    logging.error(
+                        "Erreur! Le 1er fichier ({0}) n' pas pu être ouvert. Fin du programme. Veuillez contrôler"
+                        " que le fichier existe sous ce nom.".format(fName))
+                    sys.exit()
 
-                    if nb_fichiers_lus == 0:
-                        # si le mot "SITE" se trouve dans une des lignes, alors split la phrase
-                        if "SITE" in lines:
-                            words = lines.split()
-                            # pour chaque lettre dans chaque mot de la ligne, s'il est composé de chiffres alors le mot
-                            # est affecté à la variable M720Compteur
-                            for b in words:
-                                if b.isdigit():
-                                    # self.compteur_num.__add__(b)
-                                    self.compteur_num = b
-                                    print('nom compteur ' + str(self.compteur_num))
+                else:
+                    print("Le fichier {0} n' pas pu être ouvert et ne sera donc pas traité. Veuillez contrôler que le"
+                          " fichier existe sous ce nom.".format(fName))
+                    logging.info(
+                        "Le fichier {0} n'a pas pu être ouvert et ne sera donc pas traité. Veuillez contrôler que le"
+                        " fichier existe sous ce nom.".format(fName))
+            else:
+                with open(fName, 'r') as file:
+                    # pour chaque ligne(ici représentée par lines) dans le fichier
+                    for lines in file.readlines():
 
-                        # si le mot "CHANNELS" se trouve dans une des lignes, alors split la phrase
-                        if "CHANNELS" in lines:
-                            words = lines.split()
-                            # pour chaque lettre dans chaque mot de la ligne, s'il est composé de chiffres alors le mot
-                            # est intégré dans le tab M720affectCanal
-                            for b in words:
-                                if b.isdigit():
-                                    self.affect_canal.append(int(b))
-                                    self.nbre_canal = len(self.affect_canal)
-                            print('nbre de canaux ' + str(self.nbre_canal))
+                        if nb_fichiers_lus == 0:
+                            # si le mot "SITE" se trouve dans une des lignes, alors split la phrase
+                            if "SITE" in lines:
+                                words = lines.split()
+                                # pour chaque lettre dans chaque mot de la ligne, s'il est composé de chiffres alors le mot
+                                # est affecté à la variable M720Compteur
+                                for b in words:
+                                    if b.isdigit():
+                                        # self.compteur_num.__add__(b)
+                                        self.compteur_num = b
+                                        print('nom compteur ' + str(self.compteur_num))
 
-                        # # si le mot "STARTREC" se trouve dans une des lignes, alors split la phrase, prend le dernier
-                        # mot du tableau words et remplace les "/" par rien puis affecte le mot à la var M720dateDebut
-                        # if "STARTREC" in lines:
-                        #     words = lines.split()
-                        #     strDateDebut = words[-1].replace('/', '')
-                        #     self.date_debut = strDateDebut
-                        #     print('date de début ' + str(self.date_debut))
+                            # si le mot "CHANNELS" se trouve dans une des lignes, alors split la phrase
+                            if "CHANNELS" in lines:
+                                words = lines.split()
+                                # pour chaque lettre dans chaque mot de la ligne, s'il est composé de chiffres alors le mot
+                                # est intégré dans le tab M720affectCanal
+                                for b in words:
+                                    if b.isdigit():
+                                        self.affect_canal.append(int(b))
+                                        self.nbre_canal = len(self.affect_canal)
+                                print('nbre de canaux ' + str(self.nbre_canal))
 
-                        # si le nbre de fichiers lus est suppérieur ou égal à 0
-                    if nb_fichiers_lus >= 0:
-                        # si le premier élément dans le tableau est un chiffre alors récupération des 2 derniers
-                        # chiffres et les attribuer à la variable jour
-                        if lines[0].isdigit():
-                            words = lines.split()
-                            date = words[0]
-                            self.jour = date[0:2]
+                            # # si le mot "STARTREC" se trouve dans une des lignes, alors split la phrase, prend le dernier
+                            # mot du tableau words et remplace les "/" par rien puis affecte le mot à la var M720dateDebut
+                            # if "STARTREC" in lines:
+                            #     words = lines.split()
+                            #     strDateDebut = words[-1].replace('/', '')
+                            #     self.date_debut = strDateDebut
+                            #     print('date de début ' + str(self.date_debut))
 
-                            if jour_1 == False:  # premier jour du mois pas encore trouvé
-                                # si le premier mot de la ligne est un chiffre, alors split de la ligne en mots puis
-                                # insertion de chaque mot dans le tab data
+                            # si le nbre de fichiers lus est suppérieur ou égal à 0
+                        if nb_fichiers_lus >= 0:
+                            # si le premier élément dans le tableau est un chiffre alors récupération des 2 derniers
+                            # chiffres et les attribuer à la variable jour
+                            if lines[0].isdigit():
+                                words = lines.split()
+                                date = words[0]
+                                self.jour = date[0:2]
 
-                                if self.jour == "01":
-                                    jour_1 = True
-                                self.date_debut = date
+                                if jour_1 == False:  # premier jour du mois pas encore trouvé
+                                    # si le premier mot de la ligne est un chiffre, alors split de la ligne en mots puis
+                                    # insertion de chaque mot dans le tab data
 
-                            if self.jour == "01" and jour_1 and nb_fichiers_lus > 0:
-                                break
+                                    if self.jour == "01":
+                                        jour_1 = True
+                                    self.date_debut = date
 
-                            if jour_1:
-                                # print(jour)
-                                self.data_ascii.append(words)
-                                # du moment que la var iteration_data_ascii est inférieure ou égale à la longeure du tab
-                                # data alors prendre 1e mot de la ligne et l'injecter dans la var iterationDate
-                                iterationDate = self.data_ascii[iteration_data_ascii][0]
-                                # conversion de 2 carcatères (sélectionnés par des []) de la var string iterationDate
-                                # en int puis multiplication de ceux-ci selon la position souhaitée pour obtenir le
-                                # format de sortie désiré
-                                iterDateFormatSortie = (iterationDate[-2:]) + (iterationDate[-4:-2]) + (
-                                    iterationDate[:2])
-                                # print(self.data_ascii[iteration_data_ascii][0])
-                                # Insertion de la var iterDateFormatSortie dans la première position de chaque ligne du
-                                # tab data
-                                self.data_ascii[iteration_data_ascii][0] = iterDateFormatSortie
-                                # incrémentation de la var iteration_data_ascii
-                                print(self.data_ascii[iteration_data_ascii][0])
-                                iteration_data_ascii += 1
+                                if self.jour == "01" and jour_1 and nb_fichiers_lus > 0:
+                                    break
+
+                                if jour_1:
+                                    # print(jour)
+                                    self.data_ascii.append(words)
+                                    # du moment que la var iteration_data_ascii est inférieure ou égale à la longeure du tab
+                                    # data alors prendre 1e mot de la ligne et l'injecter dans la var iterationDate
+                                    iterationDate = self.data_ascii[iteration_data_ascii][0]
+                                    # conversion de 2 carcatères (sélectionnés par des []) de la var string iterationDate
+                                    # en int puis multiplication de ceux-ci selon la position souhaitée pour obtenir le
+                                    # format de sortie désiré
+                                    iterDateFormatSortie = (iterationDate[-2:]) + (iterationDate[-4:-2]) + (
+                                        iterationDate[:2])
+                                    # print(self.data_ascii[iteration_data_ascii][0])
+                                    # Insertion de la var iterDateFormatSortie dans la première position de chaque ligne du
+                                    # tab data
+                                    self.data_ascii[iteration_data_ascii][0] = iterDateFormatSortie
+                                    # incrémentation de la var iteration_data_ascii
+                                    print(self.data_ascii[iteration_data_ascii][0])
+                                    iteration_data_ascii += 1
 
             # imprime les données avec la date dans le bon format dans le fichier de sortie test_in.txt
             self.printData(r'test_in.txt', self.data_ascii)
@@ -192,8 +210,14 @@ class CounterM720:
             index_liste_nom += 1
             nb_fichiers_recus += 1  # mettre avant
             nb_fichiers_lus += 1
-        # Appel de la fonction suivante
-        self.initTableau()
+        if not jour_1:
+            print("Erreur! Pas de jour no 1 trouvé. Arrêt du programme. Veuillez vérifier l'exatitude de vos fichiers.")
+            logging.error(
+                "Erreur! Pas de jour no 1 trouvé. Arrêt du programme. Veuillez vérifier l'exatitude de vos fichiers.")
+            sys.exit()
+        else:
+            # Appel de la fonction suivante
+            self.initTableau()
 
     # fonctione qui imprime les données d'un tableaux dans un fichier externe
     def printData(self, file, tableau_a_imprimer):
@@ -247,36 +271,72 @@ class CounterM720:
         #  d'une date selon un canal
         nb_plage_horaire = 0
 
-        can = setup.par.get(str(self.compteur_num))
-        print(can)
-        for n in can:
-            print('----------- ------------- ----------------' + str(n) + '------------ ------------ ----------- -----')
-            #  pour chaque lignes dans le tableau data_ascii
-            for ligne in self.data_ascii:
-                #  si le n° de canal de par['can'] correspond au n° de canal du tableau data_ascii
-                if int(ligne[2]) == n:
-                    #  récupérer la ligne pointée dans data_ascii et l'attribuer dans la variable data
-                    data = ligne
-                    print(data)
-                    #  récupérer le numéro du jour sur 1 ou 2 digits
-                    date = data[0]
-                    day = int(date[4:6])
-                    print(day)
-                    #  appel de la fonction avec paramètres
-                    self.conv_LineToCol(data, n, day, nb_plage_horaire)
-                    #  incrémentation de la variable
-                    nb_plage_horaire += 1
-                    #  si la variable nb_plage_horaire est égal à 2, on log et on remet la variable nb_plage_horaire à 0
-                    if nb_plage_horaire == 2:
-                        logging.info(
-                            "le jour " + str(day) + " pour le canal no " + str(n) + " a été inséré dans le "
-                                                                                      "tableau de sortie")
-                        nb_plage_horaire = 0
+        if self.compteur_num == '':
+            print("Le numéro de compteur n'a pas été trouvé. Vérifiez que le 1er fichier ( {0} ) existe sous ce nom ou "
+                "insérez le n° de compteur.".format(setup.par['infile']))
+            logging.info(
+                "Le numéro de compteur n'a pas été trouvé. Vérifiez que le 1er fichier ( {0} ) existe sous ce nom ou "
+                "insérez le n° de compteur.".format(setup.par['infile']))
+            self.compteur_num = input("Entrer ici le numéro du compteur ou interrompez le programme en pressant CTRL + C: ")
+            print(
+                "Le numéro de compteur inséré par l'utilisateur est: " + self.compteur_num)
+            logging.info(
+                "Le numéro de compteur inséré par l'utilisateur est: " + self.compteur_num)
 
+        can = setup.par.get(str(self.compteur_num))
+        print("num de can est: " + str(can))
+
+
+
+
+        if can.count(0) > 5:
+
+            print('Erreur! Le canal ' + str(self.compteur_num) + ' ne contient que des 0. Veuillez vérifier le fichier '
+                                                                 'de config. Arrêt du programme.')
+            logging.error('Erreur! Le canal ' + str(self.compteur_num) + ' ne contient que des 0. '
+                                                                         'Veuillez vérifier le fichier de config. Arrêt du programme.')
+            sys.exit()
+
+        else:
+            print('il y a ' + str(can.count(0)) + ' de canaux à 0 dans le else')
+            for n in can:
+                print('----------- ------------- ------------' + str(n) + '------------ ------------- ---------------')
+                if n > 6:
+                    print('Le canal ' + str(self.compteur_num) + ' a une entrée à ' + str(n) + ' qui ne sera pas traitée.'
+                                                                                               'Veuillez ne pas dépasser'
+                                                                                               ' 6 entrées par canal')
+                    logging.info('Le canal ' + str(self.compteur_num) + ' a une entrée à ' + str(n) + ' qui ne sera pas traitée.'
+                                                                                               ' Veuillez ne pas dépasser'
+                                                                                               ' 6 entrées par canal.')
                 else:
-                    print("erreur")
-                #     logging.error("le jour " + str(day) + " pour le canal no " + str(compteur) + " est manquant dans le "
-                #     " tableau d'entrée")
+                    #  pour chaque lignes dans le tableau data_ascii
+                    for ligne in self.data_ascii:
+                        #  si le n° de canal de par['can'] correspond au n° de canal du tableau data_ascii
+                        if int(ligne[2]) == n:
+                            #  récupérer la ligne pointée dans data_ascii et l'attribuer dans la variable data
+                            data = ligne
+                            print(data)
+                            #  récupérer le numéro du jour sur 1 ou 2 digits
+                            date = data[0]
+                            day = int(date[4:6])
+                            print(day)
+                            #  appel de la fonction avec paramètres
+                            self.conv_LineToCol(data, n, day, nb_plage_horaire)
+                            #  incrémentation de la variable
+                            nb_plage_horaire += 1
+                            #  si la variable nb_plage_horaire est égal à 2, on log et on remet la variable nb_plage_horaire à 0
+                            if nb_plage_horaire == 2:
+                                logging.debug(
+                                    "Le jour " + str(day) + " pour le canal no " + str(n) + " a été inséré dans le "
+                                                                                            "tableau de sortie")
+                                nb_plage_horaire = 0
+
+                        else:
+
+                            # pass
+                            print("error")
+                            # logging.error('Le canal ' + str(
+                            #     n) + " n'a pas été trouvé dans le fichier d'entrée. Veuillez vérifier le fichier de config.")
         self.printData(r'test_out.txt', self.data_int)
         t1 = time.time()
         logging.info('Fin de l application en {0} secondes.'.format(t1 - self.t0))
@@ -288,13 +348,30 @@ class CounterM720:
         #  tant que index est inférieur à la longueur du tableau data
         while index < len(data):
             #  attribution de la valeur pointée dans data à la variable nbre
-            nbre = int(data[index])
+            try:
+                nbre = int(data[index])
 
-            heure = (index - 3) + 12 * (nb_plage_horaire)
-            self.data_int[(day - 1) * 24 + heure][2 + compteur] = nbre
-            print(nbre)
-            print(index)
-            index += 1
+            except ValueError:
+                print(
+                    "Le caractère inséré " + str(data[index]) + " en date du " + str(day) + " n'est pas un entier. Il sera "
+                                                                  "remplacé par un 0 dans le fichier de sortie.")
+                logging.info(
+                    "Le caractère inséré " + str(data[index]) + " en date du " + str(day) + " n'est pas un entier. Il sera "
+                                                                  "remplacé par un 0 dans le fichier de sortie.")
+                nbre = 0
+                heure = (index - 3) + 12 * (nb_plage_horaire)
+                self.data_int[(day - 1) * 24 + heure][2 + compteur] = nbre
+                print(nbre)
+                print(index)
+                index += 1
+
+            else:
+                nbre = int(data[index])
+                heure = (index - 3) + 12 * (nb_plage_horaire)
+                self.data_int[(day - 1) * 24 + heure][2 + compteur] = nbre
+                print(nbre)
+                print(index)
+                index += 1
 
 
 if __name__ == '__main__':
