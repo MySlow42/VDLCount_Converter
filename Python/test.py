@@ -115,13 +115,14 @@ class test:
             print(liste_nom)
 
 
-    def Test(self, compteur = '105'):
-        fichier = r'.\Data\config.txt'
-        print("le no du compteur est: " + compteur)
-        with open(fichier, 'r') as file:
-            for lignes in file.readlines():
-                if compteur in lignes:
-                    print(lignes)
+    def Test(self):
+        words = ['190303', '0100', '3', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']
+        for i in words[3:]:
+            print(i)
+        if(len(set(words[3:]))==1):
+            print("passe ici bordel")
+
+
 
 if __name__ == '__main__':
     import sys
@@ -134,4 +135,3 @@ if __name__ == '__main__':
     x.Test()
 
     # print(x.nomFichierALire)
-    print('blabla')

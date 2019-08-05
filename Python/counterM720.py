@@ -6,12 +6,11 @@ Selon le point 7.2 du CDC
 recherche tous les fichiers à lire puis traîtement des fichiers
 """
 # Import des modules nécessaires
+import time
+import sys
+import os
 import logging
-
-import time, sys
-
 import numpy as np
-
 import setup
 
 
@@ -34,11 +33,10 @@ class CounterM720:
         self.nbre_canal = nbrecan
         self.affect_canal = []
         self.date_debut = ddebut
-        self.heure_debut = hdebut
-        self.date_fin = dfin
-        self.heure_fin = hfin
+        # self.heure_debut = hdebut
+        # self.date_fin = dfin
+        # self.heure_fin = hfin
         self.data_ascii = []
-        # self.initTableau()
 
     """def __repr__(self):
         return 'no de Compteur {0: 6d}, Nbre de canaux = {1:6d}, affectation des canaux = {2:6d}, date de début = {3:6d}, heure de début = {4:4d}, date de fin = {5:6d}, heure de fin = {6:4d}'.format(
@@ -106,8 +104,7 @@ class CounterM720:
         print(self.liste_nom[index_liste_nom])
         for fName in self.liste_nom:
             fName = fName.replace('\\', '/')
-            # ouverture du fichier en lecture, instanciation de la variable "iteration_data_ascii" qui nous servira
-            # d'index
+            # Teste si le fichier existe et peut s'ouvrir sinon log
             try:
                 with open(fName, 'r') as file:
                     pass
@@ -128,6 +125,8 @@ class CounterM720:
                         "Le fichier {0} n'a pas pu être ouvert et ne sera donc pas traité. Veuillez contrôler que le"
                         " fichier existe sous ce nom.".format(fName))
             else:
+                # ouverture du fichier en lecture, instanciation de la variable "iteration_data_ascii" qui nous servira
+                # d'index
                 with open(fName, 'r') as file:
                     # pour chaque ligne(ici représentée par lines) dans le fichier
                     for lines in file.readlines():
@@ -165,12 +164,23 @@ class CounterM720:
 
                             # si le nbre de fichiers lus est suppérieur ou égal à 0
                         if nb_fichiers_lus >= 0:
-                            # si le premier élément dans le tableau est un chiffre alors récupération des 2 derniers
-                            # chiffres et les attribuer à la variable jour
+                            # si le premier élément dans le tableau est un chiffre
+                            # alors récupération des 2 derniers chiffres et les attribuer à la variable jour
                             if lines[0].isdigit():
                                 words = lines.split()
                                 date = words[0]
                                 self.jour = date[0:2]
+
+                                # Si la ligne courrente est entièrement à 0 alors on log
+                                # if(len(set(words[3:]))=='0'):
+                                # Si la ligne courrente comporte 12 0 alors on log
+                                if words[3:].count('0') == 12:
+                                    print(
+                                        "La Ligne en date du {} à {} pour le canal {} est entièrement à 0."
+                                            .format(self.jour, words[1:2], words[2:3]))
+                                    logging.info(
+                                        "La Ligne en date du {} à {} pour le canal {} est entièrement à 0."
+                                            .format(self.jour, words[1:2], words[2:3]))
 
                                 if jour_1 == False:  # premier jour du mois pas encore trouvé
                                     # si le premier mot de la ligne est un chiffre, alors split de la ligne en mots puis
@@ -263,7 +273,6 @@ class CounterM720:
             i += 1
         print(self.data_int)
         self.printData(r'test_out.txt', self.data_int)
-
     #  fonction qui pour chaque canal var lire les lignes avec le canal correspondant, récupère le jour de la ligne traitée
     #  et log les infos et erreurs
     def conversionData(self):
@@ -277,7 +286,7 @@ class CounterM720:
             logging.info(
                 "Le numéro de compteur n'a pas été trouvé. Vérifiez que le 1er fichier ( {0} ) existe sous ce nom ou "
                 "insérez le n° de compteur.".format(setup.par['infile']))
-            self.compteur_num = input("Entrer ici le numéro du compteur ou interrompez le programme en pressant CTRL + C: ")
+            self.compteur_num = input("Entrer ici le numéro du compteur ou interrompez le programme: ")
             print(
                 "Le numéro de compteur inséré par l'utilisateur est: " + self.compteur_num)
             logging.info(
@@ -333,11 +342,20 @@ class CounterM720:
 
                         else:
 
-                            # pass
-                            print("error")
+                            pass
+                            # print("error")
                             # logging.error('Le canal ' + str(
                             #     n) + " n'a pas été trouvé dans le fichier d'entrée. Veuillez vérifier le fichier de config.")
+        # Insère l'en-tête
+        i = 0
+        while i < 9:
+            np.insert(self.data_int, i, i + 1)
+            i += 1
+
+
+
         self.printData(r'test_out.txt', self.data_int)
+        self.insert_repertoire(self.date_debut)
         t1 = time.time()
         logging.info('Fin de l application en {0} secondes.'.format(t1 - self.t0))
 
@@ -372,6 +390,48 @@ class CounterM720:
                 print(nbre)
                 print(index)
                 index += 1
+
+    # Va créer le fichier de l'année et du mois concernant si pas existant et y insérer el fichier de sortie
+    def insert_repertoire(self, date_debut):
+        # Instanciation variables
+        # date_debut sous format jjmmaa
+        annee = "20" + str(date_debut[4:])
+        mois = date_debut[2:4]
+        tab_mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre',
+                    'Novembre', 'Décembre']
+        repertoire = r'\\lausanne.ch\data\6A0\apps\applications\Count_Converter\Python'
+        repertoire = os.path.join(repertoire, annee)
+        repertoire = os.path.join(repertoire, str(mois) +" "+ tab_mois[int(mois)-1])
+        # Test si le chemin du dossier existe
+        if not os.path.exists(repertoire):
+            os.makedirs(repertoire)
+        extension = ".ASB"
+        name = (str(self.compteur_num))
+
+        # Insertion des 0 avant le nom du fichier et définition de l'extension en .ABS
+        while len(name) < 8:
+            name = '0' + name
+        name = name + '.ABS'
+
+        # Définition du chemin de fichier
+        file = os.path.join(repertoire, name)
+
+        # Ouvrture du fichier en écriture et insertion des données de sortie
+        with open(file, 'w') as file:
+            for ligne in self.data_int:
+                file.write(str(ligne))
+                file.write('\n')
+
+        # Affiche un message avant d efermer la fenêtre
+        if input("Cette fenêtre se fermera dès que vous aurez cliquer sur Q. Veuillez vérifier le fichier de log. ") == "Q" or "q":
+            sys.exit()
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

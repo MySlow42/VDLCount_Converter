@@ -27,7 +27,8 @@ ERR_FORMAT = 5
 logging.info('Démarrage de {0} -- version {1}'.format(NAME, VERSION))
 
 par = {}
-par['infile'] = '.\Data\C105CHAB_I6s.txt'
+par['infile'] = input("Veuillez insérer le nom du fichier qui contient le jour n01: ")
+par['infile'] = r'.\\Data\\' + par['infile']
 par['par défaut'] = [1, 2, 3, 0, 0, 0]
 
 
@@ -54,9 +55,9 @@ def set_config():
         sys.exit()
     else: #faire avec un raise
         if os.path.getsize(fichier) == 0:
-            print("Erreur! Le fichier {0} est vide. Fin du programme. Veuillez contrôler que le"
+            print("Erreur! Le fichier {0} est vide. Fin du programme. Veuillez contrôler le"
                           " fichier.".format(fichier))
-            logging.error("Erreur! Le fichier {0} est vide. Fin du programme. Veuillez contrôler que le"
+            logging.error("Erreur! Le fichier {0} est vide. Fin du programme. Veuillez contrôler le"
                           " fichier.".format(fichier))
             sys.exit()
         else:
