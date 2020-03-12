@@ -1,6 +1,15 @@
-# configuration des cannaux selon le format: NNN=1,2,3,4,5,6 o� NNN est le num�ro du compteur
-
+# configuration des cannaux selon le format: NNN=1,2,3,4,5,6 où NNN est le numéro du compteur
+# Le répertoire  correspond à l'endroit où aller chercher les données brutes
+# Le fichier le log sera à l'endroit indiqué pour aller placer le fichier de log.
 036=1,2,3,0,0,0
-135=0,2,3,0,0,0
-136=1,2,3,0,0,0
+048=1,2,3,0,0,0
+063=1,2,3,0,0,0
+103=1,2,3,0,0,0
+104=1,2,3,0,0,0
 105=1,2,3,4,0,0
+134=1,2,0,0,0,0
+135=1,2,0,0,0,0
+136=1,2,3,0,0,0
+
+repertoire=\\lausanne.ch\DATA\430\Groups\5_Mobilite\Mobilite\4_Comptages\Permanents\Données_brutes
+fichierLog=\\lausanne.ch\DATA\6A0\Apps\applications\Count_Converter\Python\fichier.log

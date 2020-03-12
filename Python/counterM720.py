@@ -1,89 +1,87 @@
 """
 Ville de Lausanne - Routes et mobilité
 R Cordonier 01/2019
-Traitement et conversions des fichiers des compteurs Golden River et MetroCount en un format de sortie normalisé
+Traitement et conversions des fichiers des compteurs Golden River et MetroCount en un format de sortie normalisé .ASB
 Selon le point 7.2 du CDC
-recherche tous les fichiers à lire puis traîtement des fichiers
+recherche les fichiers pour un mois de comptage à lire puis traîtement des fichiers.
+Le traitement de ces fichiers incluent 2 tableaux intermédiraires, dans un premier temps, un tableau qui stockera les
+données en ASCII avant d'être convertie en données numériques. Le format de date diffère à l'entrée comparé à la sortie
 """
 # Import des modules nécessaires
 import time
 import sys
 import os
+import os.path
 import logging
 import numpy as np
 import setup
 
 
+# coding: utf8
+
 class CounterM720:
     #  variables globales
     liste_nom = []
     jour = ''
+    date = ''
 
     #  paramètre pour le logger
-    logging.basicConfig(filename='test_log.log', level=logging.DEBUG,
+    logging.basicConfig(handlers=[logging.FileHandler('fichier.log', 'w', 'utf-8')], level=logging.DEBUG,
                         format='%(asctime)s -- %(levelname)s -- %(message)s')
-    logging = logging.getLogger('spam')
+    #  appel du logger du nom de "counterM720"
+    logging = logging.getLogger('setup')
     t0 = time.time()
 
     """ constructeur qui fait le lien avec les variables statiques et locales
      Prend en paramètre les variables utiles à la classe"""
 
-    def __init__(self, nocompt=0, nbrecan=0, affectcanal=0, ddebut=0, hdebut=0, dfin=0, hfin=0):
+    def __init__(self, nbrecan=0, ddebut=0, ):
         self.compteur_num = ''
         self.nbre_canal = nbrecan
         self.affect_canal = []
         self.date_debut = ddebut
-        # self.heure_debut = hdebut
-        # self.date_fin = dfin
-        # self.heure_fin = hfin
         self.data_ascii = []
+        # var qui correspond au premier jour à traiter
+        self.premier_jour_a_chercher = "01"
 
-    """def __repr__(self):
-        return 'no de Compteur {0: 6d}, Nbre de canaux = {1:6d}, affectation des canaux = {2:6d}, date de début = {3:6d}, heure de début = {4:4d}, date de fin = {5:6d}, heure de fin = {6:4d}'.format(
-            self.compteur_num,
-            self.nbre_canal,
-            self.affect_canal,
-            self.date_debut,
-            self.heure_debut,
-            self.date_fin,
-            self.heure_fin)"""
-
-    # fonction qui va lire le fichier,contenant le 1er jour, inséré par l'user et déterminer les 4 autres fichiers à lire
+    # fonction qui va lire le fichier,contenant le 1er jour, inséré par l'user et déterminer les autres fichiers consécutifs  à lire
     # le r avant le pathfile va empêcher le backslash d'être interprété comme caractère d'échappement en le doublant
-    def nomFichierALire(self, nom_premier_fichier='.\Data\C105CHAB_I6s.txt'):
+    def nomFichierALire(self, nom_premier_fichier):
         logging.info('Nom du fichier inséré: {0}'.format(nom_premier_fichier))
         nom_premier_fichier = nom_premier_fichier.replace('\\', '/')  # remplace les \\ en /
         nom_premier_fichier = nom_premier_fichier.upper()  # mise en maj de la chaîne
         path_nom_fichier = nom_premier_fichier[:-6]  # tronquage du pathfile pour obtenir que le nom du fichier
-        u = nom_premier_fichier[-5:-4]  # récupération du 1er caractère qui devra être incrémenter
-        d = nom_premier_fichier[-6:-5]  # récupération du 2nd caractère qui devra être incrémenter
+        premier_char_extension = nom_premier_fichier[-5:-4]  # récupération du 1er caractère qui devra être incrémenter
+        deuxieme_char_extension = nom_premier_fichier[-6:-5]  # récupération du 2nd caractère qui devra être incrémenter
         extension = nom_premier_fichier[-4:]  # récupération de l'extension
         print(self.liste_nom)
         self.liste_nom.append(nom_premier_fichier)  # insertion du 1er pathfile (donné par l'user)
-        nb_fich = 0
+        nb_fich = 0  # l'index du premier fichier est de 0
 
-        # tant que le nbre de fichier est en dessous de 5
-        while nb_fich < 4:
-            u = CounterM720.incr09az(self, u)  # appel de la fonction incr09az avec u en paramètre
-            if u == '0':  # si u est egal à 0
-                d = CounterM720.incr09az(self, d)  # appel de la fonction incr09az avec d en paramètre
+        # tant que le nbre de fichier est en dessous de 6
+        while nb_fich < 6:
+            premier_char_extension = CounterM720.incr09az(self,
+                                                          premier_char_extension)  # appel de la fonction incr09az avec u en paramètre
+            if premier_char_extension == '0':  # si u est egal à 0
+                deuxieme_char_extension = CounterM720.incr09az(self,
+                                                               deuxieme_char_extension)  # appel de la fonction incr09az avec d en paramètre
 
-            nom = path_nom_fichier + str(d) + str(u) + extension  # contruction du nouveau nom de fichier avec extension
-            print(d, u)
+            nom = path_nom_fichier + str(deuxieme_char_extension) + str(
+                premier_char_extension) + extension  # contruction du nouveau nom de fichier avec extension
+            print(deuxieme_char_extension, premier_char_extension)
             self.liste_nom.append(nom)  # insertion du nouveau nom de fichier dans la liste
             nb_fich += 1  # incrémentation de la var
             print(self.liste_nom)
 
-            # return self.liste_nom
-
-    # fonction qui prend en paramètre qui additione 1 à la variable préalablement convertie en ASCII
+    # fonction qui prend en paramètre le premier ou le second caractère de l'extension du fichier
+    # exemple C036TUN_I0B - extension = 0B
     def incr09az(self, charFile):
         if charFile.isdecimal():  # si le caractère est un décimal
             if charFile == '9':  # s'il est égal à 9 retourner A
                 return 'A'
             else:
                 return chr(ord(
-                    charFile) + 1)  # sinon convertir la valeur en Ascii l'additionner à 1 et la reconvertir en décimal
+                    charFile) + 1)  # sinon traite les valeurs de 0 à 8
         if charFile.isalpha():  # si la variable est une lettre
             if charFile == 'Z':  # si elle est égale à Z
                 return '0'  # retourne 0
@@ -99,31 +97,29 @@ class CounterM720:
         nb_fichiers_lus = 0
         nb_fichiers_recus = 0
         index_liste_nom = 0
-        iteration_data_ascii: int = 0
-        jour_1 = False
+        iteration_data_ascii: int = 0  # variable qui contient la date du fichier d'entrée
+        jour_1 = False  # flage de recherche du 1er jour à chercher
         print(self.liste_nom[index_liste_nom])
+        # Pour chaque nom dans la liste de fichiers à traiter
         for fName in self.liste_nom:
-            fName = fName.replace('\\', '/')
-            # Teste si le fichier existe et peut s'ouvrir sinon log
+            # Teste si le fichier existe et peut s'ouvrir et traite l'erreur
             try:
                 with open(fName, 'r') as file:
                     pass
 
             except FileNotFoundError:
                 if nb_fichiers_lus == 0:
-                    print("Erreur! Le 1er fichier ({0}) n' pas pu être ouvert. Fin du programme. Veuillez contrôler "
-                          " que le fichier existe sous ce nom.".format(fName))
-                    logging.error(
-                        "Erreur! Le 1er fichier ({0}) n' pas pu être ouvert. Fin du programme. Veuillez contrôler"
-                        " que le fichier existe sous ce nom.".format(fName))
+                    so = "Erreur 01! Le 1er fichier ({0}) n' pas pu être ouvert. Fin du programme. Veuillez contrôler " \
+                         "que le fichier existe sous ce nom.".format(fName)
+                    print(so)
+                    logging.error(so)
                     sys.exit()
 
                 else:
-                    print("Le fichier {0} n' pas pu être ouvert et ne sera donc pas traité. Veuillez contrôler que le"
-                          " fichier existe sous ce nom.".format(fName))
-                    logging.info(
-                        "Le fichier {0} n'a pas pu être ouvert et ne sera donc pas traité. Veuillez contrôler que le"
-                        " fichier existe sous ce nom.".format(fName))
+                    so = "Le fichier {0} n' pas pu être ouvert et ne sera donc pas traité. Veuillez contrôler que le " \
+                         "fichier existe sous ce nom.".format(fName)
+                    print(so)
+                    logging.info(so)
             else:
                 # ouverture du fichier en lecture, instanciation de la variable "iteration_data_ascii" qui nous servira
                 # d'index
@@ -139,7 +135,6 @@ class CounterM720:
                                 # est affecté à la variable M720Compteur
                                 for b in words:
                                     if b.isdigit():
-                                        # self.compteur_num.__add__(b)
                                         self.compteur_num = b
                                         print('nom compteur ' + str(self.compteur_num))
 
@@ -154,14 +149,6 @@ class CounterM720:
                                         self.nbre_canal = len(self.affect_canal)
                                 print('nbre de canaux ' + str(self.nbre_canal))
 
-                            # # si le mot "STARTREC" se trouve dans une des lignes, alors split la phrase, prend le dernier
-                            # mot du tableau words et remplace les "/" par rien puis affecte le mot à la var M720dateDebut
-                            # if "STARTREC" in lines:
-                            #     words = lines.split()
-                            #     strDateDebut = words[-1].replace('/', '')
-                            #     self.date_debut = strDateDebut
-                            #     print('date de début ' + str(self.date_debut))
-
                             # si le nbre de fichiers lus est suppérieur ou égal à 0
                         if nb_fichiers_lus >= 0:
                             # si le premier élément dans le tableau est un chiffre
@@ -170,44 +157,44 @@ class CounterM720:
                                 words = lines.split()
                                 date = words[0]
                                 self.jour = date[0:2]
+                                print(self.jour)
 
-                                # Si la ligne courrente est entièrement à 0 alors on log
-                                # if(len(set(words[3:]))=='0'):
-                                # Si la ligne courrente comporte 12 0 alors on log
+                                # teste si la ligne du compteur est à 0
                                 if words[3:].count('0') == 12:
-                                    print(
-                                        "La Ligne en date du {} à {} pour le canal {} est entièrement à 0."
-                                            .format(self.jour, words[1:2], words[2:3]))
-                                    logging.info(
-                                        "La Ligne en date du {} à {} pour le canal {} est entièrement à 0."
-                                            .format(self.jour, words[1:2], words[2:3]))
+                                    so = "La Ligne en date du {} à {} pour le canal {} est entièrement à 0.".format(
+                                        self.jour, words[1:2], words[2:3])
+                                    print(so)
+                                    logging.info(so)
 
                                 if jour_1 == False:  # premier jour du mois pas encore trouvé
                                     # si le premier mot de la ligne est un chiffre, alors split de la ligne en mots puis
-                                    # insertion de chaque mot dans le tab data
+                                    # insertion des données de comptage dans le tableau intermédiaire ascii
 
-                                    if self.jour == "01":
+                                    if self.jour == self.premier_jour_a_chercher:
+                                        print(self.premier_jour_a_chercher)
                                         jour_1 = True
                                     self.date_debut = date
+                                    print(date)
 
-                                if self.jour == "01" and jour_1 and nb_fichiers_lus > 0:
+                                # s'il y a déjà un premier jour alors on arrête la boucle
+                                if self.jour == self.premier_jour_a_chercher and jour_1 and nb_fichiers_lus > 0:
                                     break
 
                                 if jour_1:
-                                    # print(jour)
                                     self.data_ascii.append(words)
                                     # du moment que la var iteration_data_ascii est inférieure ou égale à la longeure du tab
-                                    # data alors prendre 1e mot de la ligne et l'injecter dans la var iterationDate
+                                    # data alors prendre 1e mot de la ligne (la date) et l'injecter dans la var
+                                    # iterationDate
                                     iterationDate = self.data_ascii[iteration_data_ascii][0]
                                     # conversion de 2 carcatères (sélectionnés par des []) de la var string iterationDate
                                     # en int puis multiplication de ceux-ci selon la position souhaitée pour obtenir le
-                                    # format de sortie désiré
+                                    # format de sortie désiré - format entrée AAMMJJ format sortie JJMMAA
                                     iterDateFormatSortie = (iterationDate[-2:]) + (iterationDate[-4:-2]) + (
                                         iterationDate[:2])
-                                    # print(self.data_ascii[iteration_data_ascii][0])
                                     # Insertion de la var iterDateFormatSortie dans la première position de chaque ligne du
                                     # tab data
                                     self.data_ascii[iteration_data_ascii][0] = iterDateFormatSortie
+                                    self.date = iterDateFormatSortie
                                     # incrémentation de la var iteration_data_ascii
                                     print(self.data_ascii[iteration_data_ascii][0])
                                     iteration_data_ascii += 1
@@ -218,18 +205,18 @@ class CounterM720:
             print('Fin du traitement du fichier' + self.liste_nom[index_liste_nom])
             # Incrémente les valeurs de 1
             index_liste_nom += 1
-            nb_fichiers_recus += 1  # mettre avant
+            nb_fichiers_recus += 1
             nb_fichiers_lus += 1
         if not jour_1:
-            print("Erreur! Pas de jour no 1 trouvé. Arrêt du programme. Veuillez vérifier l'exatitude de vos fichiers.")
-            logging.error(
-                "Erreur! Pas de jour no 1 trouvé. Arrêt du programme. Veuillez vérifier l'exatitude de vos fichiers.")
+            so = "Erreur 20! Pas de jour no 1 trouvé. Arrêt du programme. Veuillez vérifier l'exatitude de vos fichiers."
+            print(so)
+            logging.error(so)
             sys.exit()
         else:
             # Appel de la fonction suivante
             self.initTableau()
 
-    # fonctione qui imprime les données d'un tableaux dans un fichier externe
+    # fonction qui imprime les données d'un tableau dans un fichier externe
     def printData(self, file, tableau_a_imprimer):
         with open(file, 'w') as file:
             for ligne in tableau_a_imprimer:
@@ -237,7 +224,7 @@ class CounterM720:
                 file.write('\n')
 
     # fonction qui va rechercher le jour no1
-    def lecturePremierJour(self, fName=r'.\Data\C105CHAB_I6E.txt'):
+    def lecturePremierJour(self, fName=setup.par['infile']):
         fName.replace('\\', '/')
         with open(fName, 'r') as file:
             # pour chaque ligne(ici représentée par lines) dans le fichier
@@ -248,13 +235,8 @@ class CounterM720:
                     words = lines.split()
                     date = words[0]
                     jour = date[0:2]
-                    print(jour)
-                    while jour >= "01":
+                    while jour >= self.premier_jour_a_chercher:
                         self.readFile()
-
-    # lecture du placement des canaux par défaut de la class setup
-    # def canRead(self, can_source):
-    #     return setup.par['can'][can_source]
 
     # instancie le tableau de sortie remplit initialement de 0 (int) puis remplis avec des valeurs par défaut
     # pour 31j
@@ -270,9 +252,11 @@ class CounterM720:
             if heures > 2400:
                 jour_date = jour_date + 1
                 heures = 100
+            self.data_int[i][0] = self.compteur_num
+            # self.data_int[i][1] = self.date
             i += 1
-        print(self.data_int)
         self.printData(r'test_out.txt', self.data_int)
+
     #  fonction qui pour chaque canal var lire les lignes avec le canal correspondant, récupère le jour de la ligne traitée
     #  et log les infos et erreurs
     def conversionData(self):
@@ -281,114 +265,112 @@ class CounterM720:
         nb_plage_horaire = 0
 
         if self.compteur_num == '':
-            print("Le numéro de compteur n'a pas été trouvé. Vérifiez que le 1er fichier ( {0} ) existe sous ce nom ou "
-                "insérez le n° de compteur.".format(setup.par['infile']))
-            logging.info(
-                "Le numéro de compteur n'a pas été trouvé. Vérifiez que le 1er fichier ( {0} ) existe sous ce nom ou "
-                "insérez le n° de compteur.".format(setup.par['infile']))
+            so = "Le numéro de compteur n'a pas été trouvé. Vérifiez que le 1er fichier ( {0} ) existe sous ce nom ou " \
+                 "insérez le n° de compteur.".format(setup.par['infile'])
+            print(so)
+            logging.info(so)
             self.compteur_num = input("Entrer ici le numéro du compteur ou interrompez le programme: ")
-            print(
-                "Le numéro de compteur inséré par l'utilisateur est: " + self.compteur_num)
-            logging.info(
-                "Le numéro de compteur inséré par l'utilisateur est: " + self.compteur_num)
+            so = "Le numéro de compteur inséré par l'utilisateur est: " + self.compteur_num
+            print(so)
+            logging.info(so)
+        else:
+            with open(setup.fichier_config, 'r') as file:
+                for lignes in file.readlines():
+                    if str(self.compteur_num) in lignes:
+                        sp = lignes.replace('\n', '')
+                        sp = sp.split('=')
+                        sp[1] = sp[1].split(',')
+                        c = 0
+                        sp[1] = [int(i) for i in sp[1]]
+                        print("sp[1]" + str(sp[1]))
 
-        can = setup.par.get(str(self.compteur_num))
-        print("num de can est: " + str(can))
+            can = sp[1]
+            print("num de can est: " + str(can))
 
-
-
-
+        # tests si tous les canaux sont à 0
         if can.count(0) > 5:
-
-            print('Erreur! Le canal ' + str(self.compteur_num) + ' ne contient que des 0. Veuillez vérifier le fichier '
-                                                                 'de config. Arrêt du programme.')
-            logging.error('Erreur! Le canal ' + str(self.compteur_num) + ' ne contient que des 0. '
-                                                                         'Veuillez vérifier le fichier de config. Arrêt du programme.')
+            so = 'Erreur 21! Le canal ' + str(
+                self.compteur_num) + ' ne contient que des 0. Veuillez vérifier le fichier ' \
+                                     'de config. Arrêt du programme.'
+            print(so)
+            logging.error(so)
             sys.exit()
 
-        else:
-            print('il y a ' + str(can.count(0)) + ' de canaux à 0 dans le else')
-            for n in can:
-                print('----------- ------------- ------------' + str(n) + '------------ ------------- ---------------')
-                if n > 6:
-                    print('Le canal ' + str(self.compteur_num) + ' a une entrée à ' + str(n) + ' qui ne sera pas traitée.'
-                                                                                               'Veuillez ne pas dépasser'
-                                                                                               ' 6 entrées par canal')
-                    logging.info('Le canal ' + str(self.compteur_num) + ' a une entrée à ' + str(n) + ' qui ne sera pas traitée.'
-                                                                                               ' Veuillez ne pas dépasser'
-                                                                                               ' 6 entrées par canal.')
-                else:
-                    #  pour chaque lignes dans le tableau data_ascii
-                    for ligne in self.data_ascii:
-                        #  si le n° de canal de par['can'] correspond au n° de canal du tableau data_ascii
-                        if int(ligne[2]) == n:
-                            #  récupérer la ligne pointée dans data_ascii et l'attribuer dans la variable data
-                            data = ligne
-                            print(data)
-                            #  récupérer le numéro du jour sur 1 ou 2 digits
-                            date = data[0]
-                            day = int(date[4:6])
-                            print(day)
-                            #  appel de la fonction avec paramètres
-                            self.conv_LineToCol(data, n, day, nb_plage_horaire)
-                            #  incrémentation de la variable
-                            nb_plage_horaire += 1
-                            #  si la variable nb_plage_horaire est égal à 2, on log et on remet la variable nb_plage_horaire à 0
-                            if nb_plage_horaire == 2:
-                                logging.debug(
-                                    "Le jour " + str(day) + " pour le canal no " + str(n) + " a été inséré dans le "
-                                                                                            "tableau de sortie")
-                                nb_plage_horaire = 0
+        # else:
+        for n in can:
+            print('----------- ------------- ------------' + str(n) + '------------ ------------- ---------------')
+            if n > 6:
+                so = 'Le canal ' + str(self.compteur_num) + ' a une entrée à ' + str(n) + ' qui ne sera pas ' \
+                                                                                          'traitée. Veuillez ne ' \
+                                                                                          'pas dépasser 6 entrées ' \
+                                                                                          'par canal.'
+                print(so)
+                logging.info(so)
+            else:
+                #  pour chaque lignes dans le tableau data_ascii
+                for ligne in self.data_ascii:
+                    #  si le n° de canal de par['can'] correspond au n° de canal du tableau data_ascii
+                    if int(ligne[2]) == n:
+                        #  récupérer la ligne pointée dans data_ascii et l'attribuer dans la variable data
+                        data = ligne
+                        #  récupérer le numéro du jour sur 1 ou 2 digits
+                        date = data[0]
+                        day = int(date[4:6])
+                        #  appel de la fonction avec paramètres
+                        self.conv_LineToCol(data, n, day, nb_plage_horaire)
+                        #  incrémentation de la variable
+                        nb_plage_horaire += 1
+                        #  si la variable nb_plage_horaire est égal à 2, on log et on remet la variable nb_plage_horaire à 0
+                        if nb_plage_horaire == 2:
+                            logging.debug(
+                                "Le jour " + str(day) + " pour le canal no " + str(n) + " a été inséré dans le "
+                                                                                        "tableau de sortie")
+                            nb_plage_horaire = 0
 
-                        else:
+                    else:
 
-                            pass
-                            # print("error")
-                            # logging.error('Le canal ' + str(
-                            #     n) + " n'a pas été trouvé dans le fichier d'entrée. Veuillez vérifier le fichier de config.")
-        # Insère l'en-tête
+                        pass
+
+        # Insère l'en-tête du fichier de sortie
         i = 0
         while i < 9:
             np.insert(self.data_int, i, i + 1)
             i += 1
 
-
-
         self.printData(r'test_out.txt', self.data_int)
         self.insert_repertoire(self.date_debut)
         t1 = time.time()
         logging.info('Fin de l application en {0} secondes.'.format(t1 - self.t0))
+        sys.exit()
 
-    #  fonction qui va convertir les données d'un tablea à un autre à l'aide de la fonction  conv_LineToCol
-    def conv_LineToCol(self, data, compteur, day, nb_plage_horaire):
+    #  fonction qui va convertir les données du tableau ascii au numérique à l'aide de la fonction  conv_LineToCol qui
+    #  prend en paramètre le tableau de données à convertir, le no du compteur, le jour concerné et de quelle plage
+    #  horaire il s'agit
+    def conv_LineToCol(self, data, no_compteur, day, nb_plage_horaire):
         #  instanciation de la variable index à 3 - car c'est à partir de la 4è position que sont les données à traiter
         index = 3
-        #  tant que index est inférieur à la longueur du tableau data
+        #  tant que index est inférieur à la longueur de la ligne du tableau data
         while index < len(data):
             #  attribution de la valeur pointée dans data à la variable nbre
             try:
                 nbre = int(data[index])
 
             except ValueError:
-                print(
-                    "Le caractère inséré " + str(data[index]) + " en date du " + str(day) + " n'est pas un entier. Il sera "
-                                                                  "remplacé par un 0 dans le fichier de sortie.")
-                logging.info(
-                    "Le caractère inséré " + str(data[index]) + " en date du " + str(day) + " n'est pas un entier. Il sera "
-                                                                  "remplacé par un 0 dans le fichier de sortie.")
+                so = "Le caractère inséré " + str(data[index]) + " en date du " + str(day) + " n'est pas un entier. " \
+                                                                                             "Il sera remplacé par " \
+                                                                                             "un 0 dans le fichier " \
+                                                                                             "de sortie."
+                print(so)
+                logging.info(so)
                 nbre = 0
                 heure = (index - 3) + 12 * (nb_plage_horaire)
-                self.data_int[(day - 1) * 24 + heure][2 + compteur] = nbre
-                print(nbre)
-                print(index)
+                self.data_int[(day - 1) * 24 + heure][2 + no_compteur] = nbre
                 index += 1
 
             else:
                 nbre = int(data[index])
                 heure = (index - 3) + 12 * (nb_plage_horaire)
-                self.data_int[(day - 1) * 24 + heure][2 + compteur] = nbre
-                print(nbre)
-                print(index)
+                self.data_int[(day - 1) * 24 + heure][2 + no_compteur] = nbre
                 index += 1
 
     # Va créer le fichier de l'année et du mois concernant si pas existant et y insérer el fichier de sortie
@@ -399,19 +381,20 @@ class CounterM720:
         mois = date_debut[2:4]
         tab_mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre',
                     'Novembre', 'Décembre']
-        repertoire = r'\\lausanne.ch\data\6A0\apps\applications\Count_Converter\Python'
+        repertoire = setup.par['path file']
+        logging.info(repertoire)
+
         repertoire = os.path.join(repertoire, annee)
-        repertoire = os.path.join(repertoire, str(mois) +" "+ tab_mois[int(mois)-1])
+        repertoire = os.path.join(repertoire, str(mois) + " " + tab_mois[int(mois) - 1])
         # Test si le chemin du dossier existe
         if not os.path.exists(repertoire):
             os.makedirs(repertoire)
-        extension = ".ASB"
         name = (str(self.compteur_num))
 
         # Insertion des 0 avant le nom du fichier et définition de l'extension en .ABS
         while len(name) < 8:
             name = '0' + name
-        name = name + '.ABS'
+        name = name + '.ASB'
 
         # Définition du chemin de fichier
         file = os.path.join(repertoire, name)
@@ -422,32 +405,16 @@ class CounterM720:
                 file.write(str(ligne))
                 file.write('\n')
 
-        # Affiche un message avant d efermer la fenêtre
-        if input("Cette fenêtre se fermera dès que vous aurez cliquer sur Q. Veuillez vérifier le fichier de log. ") == "Q" or "q":
-            sys.exit()
-
-
-
-
-
-
-
+        # Affiche un message avant de fermer la fenêtre
+        if input("Cette fenêtre se fermera dès que vous aurez cliquer sur Q. Veuillez vérifier le fichier de "
+                 "log qui se trouve à l'emplacement du programme.") == "Q" or "q":
+            pass
 
 
 if __name__ == '__main__':
     x = CounterM720()
-    x.nomFichierALire()
+    x.nomFichierALire(setup.nom_fichier_lire)
     x.readFile()
     x.conversionData()
 
     print("---------------\n")
-
-    # print(x.compteur_num)
-    # print(x.affect_canal)
-    # print(x.nbre_canal)
-    # print(x.date_debut)
-    # print(x.canRead(2))
-    # print(x.lecturePremierJour)
-    # print(x.nomFichierALire)
-    # print(x.data_ascii)
-    # print(x.data_int)
